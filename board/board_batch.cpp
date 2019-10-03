@@ -18,7 +18,16 @@ void TBoardBatch::MakeMove(const TBoard::TMove& m) {
 		Boards[i].MakeMove(m);
 }
 
+void TBoardBatch::MakeMove(const TBoard::TMove& m, const string& s) {
+	for (int i = 0; i < THREAD_COUNT; i++)
+		Boards[i].MakeMove(m, s);
+}
+
 void TBoardBatch::UndoMove(const TBoard::TMove& m) {
 	for (int i = 0; i < THREAD_COUNT; i++)
 		Boards[i].UndoMove(m);
+}
+
+void TBoardBatch::PrintStory() const {
+	Boards[0].PrintStory();
 }

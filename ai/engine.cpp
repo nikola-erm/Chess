@@ -86,14 +86,19 @@ void TEngine::MakeUserMove() {
 	int i;
 	do {
 		string s;
+		cout << "Your move: ";
 		cin >> s;
 		if (s == "sv") {
 			ms.ShowValid();
 			continue;
+		} else if (s == "story") {
+			Boards.PrintStory();
+			cout << endl;
+			continue;
 		}
 		i = ms.GetMoveIndex(s);
 	} while (i == -1);
-	Boards.MakeMove(FirstMoves[i]);
+	Boards.MakeMove(FirstMoves[i], ms.GetMoveName(i));
 }
 
 void TEngine::MakeComputerMove() {
@@ -138,6 +143,6 @@ void TEngine::MakeComputerMove() {
 		cout << "Seems that game is over" << endl;
 		return;
 	}
-	cout << ms.GetMoveName(iob) << endl;
-	Boards.MakeMove(moves[iob]);
+	cout << "Computer move: " << ms.GetMoveName(iob) << endl;
+	Boards.MakeMove(moves[iob], ms.GetMoveName(iob));
 }

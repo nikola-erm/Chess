@@ -15,6 +15,11 @@ TBoard::TBoard() {
 	InitStandart();
 }
 
+void TBoard::MakeMove(const TMove& m, const string& name) {
+	StoryNames[Turn] = name;
+	MakeMove(m);
+}
+
 void TBoard::MakeMove(const TMove& m) {
 	Story[Turn] = m;
 	Turn++;
@@ -201,6 +206,14 @@ void TBoard::Print() const {
 	for (int i = 7; i >= 0; i--)
 		cout << s[i] << endl;
 	cout << endl;
+}
+
+void TBoard::PrintStory() const {
+	for (int t = 0; t < Turn; t++) {
+		if (t % 2 == 0)
+			cout << "\n" << t / 2 + 1 << ".";
+		cout << " " << StoryNames[t];
+	}
 }
 
 bool TBoard::TMove::IsCapturing() const {

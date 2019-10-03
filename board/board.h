@@ -48,6 +48,7 @@ public:
 
 	TBoard();
 
+	void MakeMove(const TMove& m, const string& name);
 	void MakeMove(const TMove& m);
 	void UndoMove(const TMove& m);
 
@@ -58,11 +59,13 @@ public:
 	bool IsUnderOpAttack(int pos) const;
 
 	void Print() const;
+	void PrintStory() const;
 	
 private:
 	int Turn;
 	TMask Masks[14];
 	TMove Story[10000];
+	string StoryNames[10000];
 
 	bool IsUnderLinearAttack(
 		int pos, 
@@ -136,7 +139,9 @@ public:
 	TBoard::TMove* GenerateMovesUnchecked(TBoard::TMove* moves);
 	TBoardBatch();
 	void MakeMove(const TBoard::TMove& m);
+	void MakeMove(const TBoard::TMove& m, const string& s);
 	void UndoMove(const TBoard::TMove& m);
+	void PrintStory() const;
 
 private:
 	vector<TBoard> Boards;
