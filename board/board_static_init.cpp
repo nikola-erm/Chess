@@ -85,8 +85,8 @@ void TBoard::StaticInit() {
 				PawnWhiteStep[pos][0] = Num(x, y + 1);
 			if (y > 0)
 				PawnBlackStep[pos][0] = Num(x, y - 1);
-			PawnWhiteStep[pos][1] = (y == 1 ? Num(x, y + 2) : 0);
-			PawnBlackStep[pos][1] = (y == 6 ? Num(x, y - 2) : 0);
+			PawnWhiteStep[pos][1] = (y == 1 ? Num(x, y + 2) : -1);
+			PawnBlackStep[pos][1] = (y == 6 ? Num(x, y - 2) : -1);
 			PawnWhiteStrikeAll[pos] = 0;
 			PawnBlackStrikeAll[pos] = 0;
 			int wi = 0;
@@ -99,6 +99,40 @@ void TBoard::StaticInit() {
 			}
 			PawnWhiteStrike[pos][wi] = -1;
 			PawnBlackStrike[pos][bi] = -1;
+		}
+
+		RequiredEnPassantMask[from][0] = 0;
+		RequiredEnPassantMask[from][1] = 0;
+		if (y == 3) {
+		  	if (x > 0) {
+				RequiredEnPassantMask[from][0] = GetMask(x-1, 1) | GetMask(x-1, 3);
+				auto& m = EnPassantMove[from][0];
+				m.Reset();
+				m.Add(MT_BPAWN, from, Num(x-1, 2));
+				m.Add(MT_WPAWN, Num(x-1, 3));
+			}
+			if (x < 7) {
+				RequiredEnPassantMask[from][1] = GetMask(x+1, 1) | GetMask(x+1, 3);
+				auto& m = EnPassantMove[from][1];
+				m.Reset();
+				m.Add(MT_BPAWN, from, Num(x+1, 2));
+				m.Add(MT_WPAWN, Num(x+1, 3));
+			}
+		} else if (y == 4) {
+		    if (x > 0) {
+		    	RequiredEnPassantMask[from][0] = GetMask(x-1, 6) | GetMask(x-1, 4);
+		    	auto& m = EnPassantMove[from][0];
+				m.Reset();
+				m.Add(MT_WPAWN, from, Num(x-1, 5));
+				m.Add(MT_BPAWN, Num(x-1, 4));
+		    }
+		    if (x < 7) {
+		    	RequiredEnPassantMask[from][1] = GetMask(x+1, 6) | GetMask(x+1, 4);
+		    	auto& m = EnPassantMove[from][1];
+				m.Reset();
+				m.Add(MT_WPAWN, from, Num(x+1, 5));
+				m.Add(MT_BPAWN, Num(x+1, 4));
+		    }
 		}
 		
 		FieldStr[from] = "";
@@ -160,6 +194,15 @@ void TBoard::StaticInit() {
 	LongCastlingBlackRookDiff[1] = Num(3, 7);
 	LongCastlingWhiteRookDiff[0] = Num(0, 0);
 	LongCastlingWhiteRookDiff[1] = Num(3, 0);
+
+	for (int i = 0; i < 14; i++)
+	for (int j = 0; j < 64; j++) {
+		auto& fp = FigurePrints[i][j];
+		fp = 0;
+		for (int pos = 5; pos < 64; pos++) {
+			fp |= static_cast<TMask>(Rand(2)) << pos;
+		}
+	}
 }
 
 int   TBoard::Bits[256][9];
@@ -183,7 +226,6 @@ TMask TBoard::WhiteKnightStartCells;
 TMask TBoard::BlackKnightStartCells;
 TMask TBoard::WhiteBishopStartCells;
 TMask TBoard::BlackBishopStartCells;
-TMask TBoard::EnPassantDiff[64];
 TMask TBoard::MaskLine1;
 TMask TBoard::MaskLine2;
 TMask TBoard::MaskLine3;
@@ -213,3 +255,6 @@ int TBoard::ShortCastlingBlackRookDiff[2];
 int TBoard::ShortCastlingWhiteRookDiff[2];
 int TBoard::LongCastlingBlackRookDiff[2];
 int TBoard::LongCastlingWhiteRookDiff[2];
+TMask TBoard::RequiredEnPassantMask[64][2];
+TBoard::TMove TBoard::EnPassantMove[64][2];
+TMask TBoard::FigurePrints[14][64];

@@ -13,6 +13,11 @@ TBoardBatch::TBoardBatch() {
 		Boards.emplace_back();
 }
 
+TBoardBatch::TBoardBatch(const string& fen) {
+	for (int i = 0; i < THREAD_COUNT; i++)
+		Boards.emplace_back(fen);
+}
+
 void TBoardBatch::MakeMove(const TBoard::TMove& m) {
 	for (int i = 0; i < THREAD_COUNT; i++)
 		Boards[i].MakeMove(m);
@@ -30,4 +35,9 @@ void TBoardBatch::UndoMove(const TBoard::TMove& m) {
 
 void TBoardBatch::PrintStory() const {
 	Boards[0].PrintStory();
+}
+
+void TBoardBatch::Undo() {
+	for (int i = 0; i < THREAD_COUNT; i++)
+		Boards[i].Undo();
 }

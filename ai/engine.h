@@ -1,17 +1,24 @@
 #include <ai/heuristics.h>
 #include <board/board.h>
+#include <util.h>
 
 class TEngine {
 public:
+	struct TDfsLimits {
+		int Depth;
+		int Capture;
+		int Force;
+	};
+
 	TEngine(TBoardBatch& boards);
 
-	int Dfs(int depth, int& cnt);
-	int Dfs(int ti, TBoard::TMove* moves, int depth, int a, int b, int& cnt);
+	int Dfs(int depth, int& cnt, int a = -INF, int b = INF);
+	int Dfs(int ti, TBoard::TMove* moves, TDfsLimits lim, int a, int b, int& cnt);
 	void MakeUserMove();
-	void MakeComputerMove();
+	void MakeComputerMove(int posCntLim);
+	void Print() const;
 
 private:
-	const int INF = 1e6;
 	TBoardBatch& Boards;
 
 	TBoard::TMove Moves[THREAD_COUNT][1000];

@@ -9,12 +9,14 @@ void THeuristics::UpdateGameStage() {
 	if (Board.Turn < 14) {
 		GameStage = GS_OPENNING;
 	} else {
-		TMask m = Board.Masks[TBoard::MT_WQUEEN]  | Board.Masks[TBoard::MT_BQUEEN]
-				| Board.Masks[TBoard::MT_WROOK]   | Board.Masks[TBoard::MT_BROOK]
-				| Board.Masks[TBoard::MT_WBISHOP] | Board.Masks[TBoard::MT_BBISHOP]
-				| Board.Masks[TBoard::MT_WKNIGHT] | Board.Masks[TBoard::MT_BKNIGHT]
-				| Board.Masks[TBoard::MT_WPAWN]   | Board.Masks[TBoard::MT_BPAWN];
-		GameStage = BCNT(m) < 14 ? GS_ENDING : GS_MIDDLE;
+		for (int i = 0; i < 2; i++)
+			MaskByColor[i] = Board.Masks[TBoard::MT_WQUEEN + i]
+				| Board.Masks[TBoard::MT_WROOK + i]
+				| Board.Masks[TBoard::MT_WBISHOP + i]
+				| Board.Masks[TBoard::MT_WKNIGHT + i]
+				| Board.Masks[TBoard::MT_WPAWN + i]
+				| Board.Masks[TBoard::MT_WKING + i];
+		GameStage = BCNT(MaskByColor[0] | MaskByColor[1]) < 16 ? GS_ENDING : GS_MIDDLE;
 	}
 }
 
@@ -26,6 +28,7 @@ int THeuristics::GetScore() {
 	score += PawnProgressFactor();
 	score += DoubledPawnsFactor() << 1;
 	score += IsolatedPawnFactor() << 1;
+	score += BlockedPawnFactor();
 	return score;
 }
 
@@ -82,7 +85,7 @@ int THeuristics::MaterialFactor() {
 			 + BCNT(Board.Masks[TBoard::MT_BKNIGHT]) * 3
 			 + BCNT(Board.Masks[TBoard::MT_BPAWN]);
 	
-	int sum = (sumw - sumb) * 64 / (sumw + sumb);
+	int sum = (sumw - sumb) * 64 / (sumw + sumb + 1);
 	return (Board.Turn & 1) ?  -sum : sum;
 }
 
@@ -120,5 +123,13 @@ int THeuristics::PawnProgressFactor() {
 			   + BCNT(TBoard::MaskLine3 & Board.Masks[TBoard::MT_BPAWN]) * 10
 			   + BCNT(TBoard::MaskLine2 & Board.Masks[TBoard::MT_BPAWN]) * 15;
 	}
+	return (Board.Turn & 1) ? -score : score;
+}
+
+int THeuristics::BlockedPawnFactor() {
+    auto all = MaskByColor[0] | MaskByColor[1];
+	int score =
+		BCNT(Board.Masks[TBoard::MT_BPAWN] & (all << 8)) -
+		BCNT(Board.Masks[TBoard::MT_WPAWN] & (all >> 8));
 	return (Board.Turn & 1) ? -score : score;
 }

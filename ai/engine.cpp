@@ -16,7 +16,7 @@ TEngine::TEngine(TBoardBatch& boards)
 		Heuristics.emplace_back(Boards[i]);
 }
 
-int TEngine::Dfs(int depth, int& cnt) {
+int TEngine::Dfs(int depth, int& cnt, int a, int b) {
 	cnt++;
 	int movesCount = Boards.GenerateMovesUnchecked(FirstMoves) - FirstMoves;
 	vector<thread> threads;
@@ -33,7 +33,7 @@ int TEngine::Dfs(int depth, int& cnt) {
 						lock_guard<mutex> guard(scoreMutex);
 						curScore = score;
 					}
-					curScore = -Dfs(ti, Moves[ti], depth - 1, -INF, -curScore, dcnt);
+					curScore = -Dfs(ti, Moves[ti], { depth - 1, 2, 7 }, -INF, -curScore, dcnt);
 					{
 						lock_guard<mutex> guard(scoreMutex);
 						score = max(score, curScore);
@@ -53,30 +53,47 @@ int TEngine::Dfs(int depth, int& cnt) {
 	return score;
 }
 
-int TEngine::Dfs(int ti, TBoard::TMove* moves, int depth, int a, int b, int& cnt) {
+int TEngine::Dfs(int ti, TBoard::TMove* moves, TDfsLimits lim, int a, int b, int& cnt) {
 	cnt++;
 	auto& board = Boards[ti];
-	if (depth == 0) {
+	if (board.CurrentPositionWasCount() >= 3) {
+		return 0;
+	}
+	if (lim.Depth == 0) {
 		return Heuristics[ti].GetScore();
 	}
 	int score = -INF - 1;
 	auto movesEnd = board.GenerateMovesUnchecked(moves);
+	vector<int> indeciesOfValid;
+	int i = 0;
 	for (auto m = moves; m != movesEnd; m++) {
-		int s = -INF - 1;
 		board.MakeMove(*m);
-		if (!board.IsOpKingUnderAttack()) {
-			s = -Dfs(ti, movesEnd, depth - 1, -b, -a, cnt);		
-		}
+		if (!board.IsOpKingUnderAttack())
+			indeciesOfValid.push_back(i);
 		board.UndoMove(*m);
+		i++;
+	}
+	for (int i : indeciesOfValid) {
+		int s = -INF - 1;
+		board.MakeMove(moves[i]);
+		if (moves[i].IsCapturing() && lim.Capture > 0)
+			s = -Dfs(ti, movesEnd, { lim.Depth, lim.Capture - 1, lim.Force }, -b, -a, cnt);
+		else if ((int)indeciesOfValid.size() <= lim.Force)
+			s = -Dfs(ti, movesEnd, { lim.Depth, lim.Capture, lim.Force - (int)indeciesOfValid.size() }, -b, -a, cnt);
+		else
+			s = -Dfs(ti, movesEnd, { lim.Depth - 1, lim.Capture, lim.Force }, -b, -a, cnt);			
+		board.UndoMove(moves[i]);
 		if (s > -INF) {
-			if (s >= b)
+			if (s >= b) {
 				return s;
+			}
 			score = max(s, score);
 			a = max(a, score);
 		}
 	}
-	if (score < -INF)
+	if (score < -INF) {
 		return board.IsMyKingUnderAttack() ? -INF : 0;
+	}
 	return score;
 }
 
@@ -95,13 +112,27 @@ void TEngine::MakeUserMove() {
 			Boards.PrintStory();
 			cout << endl;
 			continue;
+		} else if (s == "undo") {
+			Boards.Undo();
+			Boards.Undo();
+			continue;
+		} else if (s == "print") {
+			Boards[0].Print();
+			continue;
+		} else if (s == "debug_moves") {
+			for (int i = 0; i < n; i++) {
+				if (ms.GetMoveName(i) == "ba1") {
+					FirstMoves[i].Print();
+				}
+			}
 		}
 		i = ms.GetMoveIndex(s);
 	} while (i == -1);
+
 	Boards.MakeMove(FirstMoves[i], ms.GetMoveName(i));
 }
 
-void TEngine::MakeComputerMove() {
+void TEngine::MakeComputerMove(int posCntLim) {
 	TBoard::TMove moves[100];
 	int n = Boards.GenerateMovesUnchecked(moves) - moves;
 	TMoveSerializer ms(moves, n, Boards[0]);
@@ -113,36 +144,63 @@ void TEngine::MakeComputerMove() {
 		Boards[0].UndoMove(moves[i]);
 	}
 	vector<int> scores(n, 0);
-	int depth = 4;
+	vector<int> scoresSum(n, 0);
+	const int startDepth = 3;
+	int depth = startDepth;
 	int coeff = 1;
 	int cnt;
+	int max1 = -INF, max2 = -INF;
 	do {
+		auto delta = max1 - max2;
+		max1 = max2 = -INF;
 		cerr << "depth = " << depth << endl;
 		cnt = 0;
 		for (int i = 0; i < n; i++) {
 			if (valid[i]) {
 				Boards.MakeMove(moves[i]);
-				int loc = Dfs(depth, cnt);
+				int loc;
+				if (depth > startDepth)
+					loc = Dfs(depth, cnt, scores[i] - delta, scores[i] + delta);
+				else
+					loc = Dfs(depth, cnt);
 				cerr << ms.GetMoveName(i) << ": " << -loc << endl;
-				scores[i] += loc * coeff;
+				scores[i] = loc;
+				if (-loc > max1) {
+					max2 = max1;
+					max1 = -loc; 
+				} else if (-loc > max2) {
+					max2 = -loc;
+				}
+				scoresSum[i] += scores[i] * coeff;
 				Boards.UndoMove(moves[i]);
 			}
 		} 
 		cerr << "cnt = " << cnt << endl;
 		depth++;
 		coeff *= 2;
-	} while (cnt < (int)1e7);
-	int iob = -1;
+	} while (cnt < posCntLim);
+	vector<int> iobs; 
 	for (int i = 0; i < n; i++) {
 		if (!valid[i])
 			continue;
-		if (iob == -1 || scores[i] < scores[iob])
-			iob = i;
+		if (iobs.empty()) {
+			iobs.push_back(i);
+		} else if (scoresSum[i] < scoresSum[iobs[0]]) {
+			iobs.clear();
+			iobs.push_back(i);
+		} else if (scoresSum[i] == scoresSum[iobs[0]]) {
+			iobs.push_back(i);
+		}
 	}
-	if (iob == -1) {
+	if (iobs.empty()) {
 		cout << "Seems that game is over" << endl;
 		return;
 	}
+	int iob = iobs[Rand(iobs.size())];
 	cout << "Computer move: " << ms.GetMoveName(iob) << endl;
 	Boards.MakeMove(moves[iob], ms.GetMoveName(iob));
+}
+
+void TEngine::Print() const {
+	Boards[0].Print();
 }

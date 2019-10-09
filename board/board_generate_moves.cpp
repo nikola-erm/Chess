@@ -56,9 +56,9 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 	int shortRookStartPos = 7;
 	int longRookStartPos = 0;
 	const auto& shortCastlingKingDiff = c ? ShortCastlingBlackKingDiff : ShortCastlingWhiteKingDiff;
-	const auto& longCastlingKingDiff = c ? LongCastlingBlackKingDiff : LongCastlingWhiteKingDiff;
+	const auto& longCastlingKingDiff =  c ? LongCastlingBlackKingDiff : LongCastlingWhiteKingDiff;
 	const auto& shortCastlingRookDiff = c ? ShortCastlingBlackRookDiff : ShortCastlingWhiteRookDiff;
-	const auto& longCastlingRookDiff = c ? LongCastlingBlackRookDiff : LongCastlingWhiteRookDiff;
+	const auto& longCastlingRookDiff =  c ? LongCastlingBlackRookDiff : LongCastlingWhiteRookDiff;
 
 	if (c) {
 		shortCastlingMask = 4;
@@ -101,6 +101,7 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 			if (castlingDiff && !IsMyKingUnderAttack()) {
 				if (
 					(shortCastlingMask & Masks[MT_HASH]) &&
+					(myRook & (c ? (1ull << 63) : (1ull << 7))) &&
 					shortCastlingCoridor == (shortCastlingCoridor & empty) &&
 					!IsUnderOpAttack(shortCastlingTransit)
 				) {
@@ -112,6 +113,7 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 				}
 				if (
 					(longCastlingMask & Masks[MT_HASH]) &&
+					(myRook & (c ? (1ull << 56) : 1ull)) &&
 					longCastlingCoridor == (longCastlingCoridor & empty) &&
 					!IsUnderOpAttack(longCastlingTransit)
 				) {
@@ -216,8 +218,15 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 						moves->Add(mtOpRook, *m);
 					else if (cap & opQueen)
 						moves->Add(mtOpQueen, *m);
-					else
+					else {
+						for (int t = 0; t < Turn; t++) {
+							cerr << StoryNames[t] << endl;
+							Story[t].Print();
+						}
+						Print();
+						cerr << "pos = " << pos << endl;
 						assert(false);
+					}
 					moves++;
 					break;
 				} else {
@@ -317,10 +326,14 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 				} else {
 					moves->Add(mtMyPawn, posFrom, posTo);
 					moves++;
-					if ((maskTo = GetMask((posTo = pawnStep[posFrom][1]))) & empty) { // yes '=', not '=='
-						moves->Reset();
-						moves->Add(mtMyPawn, posFrom, posTo);
-						moves++;
+
+					if (-1 != (posTo = pawnStep[posFrom][1])) {
+						maskTo = GetMask(posTo);
+						if (maskTo & empty) {
+							moves->Reset();
+							moves->Add(mtMyPawn, posFrom, posTo);
+							moves++;
+						}
 					}
 				}
 			}
@@ -374,19 +387,16 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 					}
 				}           	
 			}
-			/*
-			if ((int)(MaskEnPassant & 0xffff) == Turn) {
-				for (auto m = pawnStrike[pos]; *m; m++) {
-					if (*m & MaskEnPassant) {
-						moves->Reset();
-						moves->AddModiff(mtMyPawn, from | *m);
-						moves->AddModiff(mtOpPawn, (MaskEnPassant & (~0xffffull)) ^ *m);
+			//En-passant
+			if (Turn > 0 && Story[Turn-1].MaskTypes[0] == mtOpPawn) {
+				const auto& actualMask = Story[Turn-1].Masks[0];
+				for (int i = 0; i < 2; i++) {
+					if (actualMask == RequiredEnPassantMask[posFrom][i]) {
+						*moves = EnPassantMove[posFrom][i];
 						moves++;
-						break;
 					}
 				}
-			}
-			*/
+			}	
 		}
 		myPawnTmp >>= 8;
 	}

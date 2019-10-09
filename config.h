@@ -1,4 +1,4 @@
 #pragma once
 
-const int THREAD_COUNT = 1;
-const int RANDOM_SEED = 10;
+const int THREAD_COUNT = 4;
+const int RANDOM_SEED = 8;

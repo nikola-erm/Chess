@@ -15,6 +15,10 @@ TBoard::TBoard() {
 	InitStandart();
 }
 
+TBoard::TBoard(const string& fen) {
+	InitFromFEN(fen);
+}
+
 void TBoard::MakeMove(const TMove& m, const string& name) {
 	StoryNames[Turn] = name;
 	MakeMove(m);
@@ -26,31 +30,22 @@ void TBoard::MakeMove(const TMove& m) {
 	for (int i = 0; i < m.Count; i++) {
 		Masks[m.MaskTypes[i]] ^= m.Masks[i];
 	}
-	if (m.MaskTypes[0] == MT_WKING) {
-		if (Masks[MT_HASH] & 3) {
-			cerr << "Earlier fail!" << endl;
-			for (int i = 0; i < m.Count; i++) {
-				cerr << "type: " << m.MaskTypes[i] << endl;
-				cerr << "mask: " << m.Masks[i] << endl;
-			}	
-			Print();
-			exit(0);
-		}
-	}
-	if (BCNT(Masks[MT_WKING]) != 1) {
-		for (int i = 0; i < m.Count; i++) {
-			cerr << "type: " << m.MaskTypes[i] << endl;
-			cerr << "mask: " << m.Masks[i] << endl;
-		}	
-		Print();
-		exit(0);
-	}
+	Masks[MT_HASH] ^= m.HashMask ^ 16;
+	WasCount[Masks[MT_HASH]]++;
 }
 
 void TBoard::UndoMove(const TMove& m) {
 	Turn--;
 	for (int i = 0; i < m.Count; i++)
 		Masks[m.MaskTypes[i]] ^= m.Masks[i];
+	WasCount[Masks[MT_HASH]]--;
+	if (WasCount[Masks[MT_HASH]] == 0)
+		WasCount.erase(Masks[MT_HASH]);
+	Masks[MT_HASH] ^= m.HashMask ^ 16;
+}
+
+void TBoard::Undo() {
+	UndoMove(Story[Turn-1]);
 }
 
 bool TBoard::IsOpKingUnderAttack() const {
@@ -147,24 +142,36 @@ bool TBoard::IsUnderOpAttack(int pos) const {
 }
 
 void TBoard::TMove::Reset() {
+	HashMask = 0;
 	Count = 0;
 }
 
 void TBoard::TMove::Add(EMaskType maskType, int pos) {
 	MaskTypes[Count] = maskType;
 	Masks[Count++] = GetMask(pos);
+	HashMask ^= FigurePrints[maskType][pos];
 }
 
-void TBoard::TMove::Add(EMaskType maskType, int pos1, int pos2) {
+void TBoard::TMove::Add(EMaskType maskType, int pos1, int pos2) { 
 	MaskTypes[Count] = maskType;
 	Masks[Count++] = (GetMask(pos1) | GetMask(pos2));
+	HashMask ^= FigurePrints[maskType][pos1] ^ FigurePrints[maskType][pos2];
 }
 
 void TBoard::TMove::AddHash(TMask mask) {
-	MaskTypes[Count] = MT_HASH;
-	Masks[Count++] = mask;
+	HashMask ^= mask;
 }
 
+void TBoard::TMove::Print() const {
+	cerr << "move info:" << endl;
+	for (int i = 0; i < Count; i++) {
+		cerr << MaskTypes[i] << " " << Masks[i] << endl;
+	}
+}
+
+int TBoard::CurrentPositionWasCount() const {
+	return WasCount.at(Masks[MT_HASH]);
+}
 
 void TBoard::Print() const {
 	cout << (Turn / 2 + 1) << ". ";
@@ -172,6 +179,7 @@ void TBoard::Print() const {
 		cout << "Blacks turn" << endl;
 	else
 		cout << "Whites turn" << endl;
+	cout << "WasCount: " << CurrentPositionWasCount() << endl;
 	string s[8];
 	for (int i = 0; i < 8; i++)
 		s[i] = "........";

@@ -16,6 +16,7 @@ public:
 
 private:
 	const TBoard& Board;
+	TMask MaskByColor[2];
 	EGameStage GameStage;
 
 	int MaterialFactor();
@@ -23,4 +24,5 @@ private:
 	int PawnProgressFactor();
 	int DoubledPawnsFactor();
 	int IsolatedPawnFactor();
+	int BlockedPawnFactor();
 };

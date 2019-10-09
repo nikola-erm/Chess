@@ -20,4 +20,91 @@ void TBoard::InitStandart() {
 		Masks[MT_BPAWN] |= GetMask(x, 6);
 	}
 	Masks[MT_HASH] = 15;
+	WasCount[15] = 1;
+}
+
+void TBoard::InitFromFEN(const string& fen) {
+	for (int mt = 0; mt < 14; mt++)
+		Masks[mt] = 0;
+	int i = 0, y = 7, x = 0;
+	while (fen[i] != ' ') {
+		if (fen[i] == '/') {
+			y--;
+			x = 0;
+			i++;
+			continue;
+		}
+		if ('0' <= fen[i] && fen[i] <= '9') {
+			x += fen[i] - '0';
+			i++;
+			continue;
+		}
+		switch (fen[i]) {
+		case 'K':
+			Masks[MT_WKING] |= GetMask(x, y);
+			break;
+		case 'k':
+			Masks[MT_BKING] |= GetMask(x, y);
+			break;
+		case 'Q':
+			Masks[MT_WQUEEN] |= GetMask(x, y);
+			break;
+		case 'q':
+			Masks[MT_BQUEEN] |= GetMask(x, y);
+			break;
+		case 'R':
+			Masks[MT_WROOK] |= GetMask(x, y);
+			break;
+		case 'r':
+			Masks[MT_BROOK] |= GetMask(x, y);
+			break;
+		case 'B':
+			Masks[MT_WBISHOP] |= GetMask(x, y);
+			break;
+		case 'b':
+			Masks[MT_BBISHOP] |= GetMask(x, y);
+			break;
+		case 'N':
+			Masks[MT_WKNIGHT] |= GetMask(x, y);
+			break;
+		case 'n':
+			Masks[MT_BKNIGHT] |= GetMask(x, y);
+			break;
+		case 'P':
+			Masks[MT_WPAWN] |= GetMask(x, y);
+			break;
+		case 'p':
+			Masks[MT_BPAWN] |= GetMask(x, y);
+			break;
+		}
+		x++;
+		i++;
+	}
+	i++; //skip space
+	if (fen[i] == 'w') {
+	    Turn = 0;
+	} else {
+		assert(fen[i] == 'b');
+		Turn = 1;
+	}
+	i += 2;
+	while (fen[i] != ' ') {
+		switch (fen[i]) {
+		case 'K':
+			Masks[MT_HASH] |= 1;
+			break;
+		case 'Q':
+			Masks[MT_HASH] |= 2;
+			break;
+		case 'k':
+			Masks[MT_HASH] |= 4;
+			break;
+		case 'q':
+			Masks[MT_HASH] |= 8;
+			break;
+		}
+		i++;
+	}
+	WasCount[Masks[MT_HASH]] = 1;
+	//ignore counters
 }

@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 using namespace std;
 
@@ -34,6 +35,7 @@ public:
 	struct TMove {
 		EMaskType MaskTypes[5];
 		TMask Masks[5];
+		TMask HashMask;
 		int Count;
 
 		void Reset();
@@ -41,22 +43,26 @@ public:
 		void Add(EMaskType maskType, int pos1, int pos2);
 		void AddHash(TMask mask);
 		bool IsCapturing() const;
+		void Print() const;
 	};
 
 public:
 	static void StaticInit();
 
 	TBoard();
+	TBoard(const string& fen);
 
 	void MakeMove(const TMove& m, const string& name);
 	void MakeMove(const TMove& m);
 	void UndoMove(const TMove& m);
+	void Undo();
 
 	TMove* GenerateMovesUnchecked(TMove* moves);
 	
 	bool IsOpKingUnderAttack() const;
 	bool IsMyKingUnderAttack() const;
 	bool IsUnderOpAttack(int pos) const;
+	int CurrentPositionWasCount() const;
 
 	void Print() const;
 	void PrintStory() const;
@@ -66,6 +72,7 @@ private:
 	TMask Masks[14];
 	TMove Story[10000];
 	string StoryNames[10000];
+	unordered_map<TMask, int> WasCount;
 
 	bool IsUnderLinearAttack(
 		int pos, 
@@ -79,6 +86,7 @@ private:
 	bool IsWhiteUnderAttack(int pos) const;
 	bool IsBlackUnderAttack(int pos) const;
 	void InitStandart();
+	void InitFromFEN(const string& fen);
 
 	static int Bits[256][9];
 	static int KingStep[64][9];
@@ -100,7 +108,6 @@ private:
 	static TMask BlackKnightStartCells;
 	static TMask WhiteBishopStartCells;
 	static TMask BlackBishopStartCells;
-	static TMask EnPassantDiff[64];
 	static string FieldStr[64];
 	static TMask MaskLine1;
 	static TMask MaskLine2;
@@ -131,6 +138,9 @@ private:
 	static int ShortCastlingWhiteRookDiff[2];
 	static int LongCastlingBlackRookDiff[2];
 	static int LongCastlingWhiteRookDiff[2];
+	static TMask RequiredEnPassantMask[64][2];
+	static TMove EnPassantMove[64][2];
+	static TMask FigurePrints[14][64];
 };
 
 class TBoardBatch {
@@ -138,9 +148,11 @@ public:
 	TBoard& operator[](int i);
 	TBoard::TMove* GenerateMovesUnchecked(TBoard::TMove* moves);
 	TBoardBatch();
+	TBoardBatch(const string& fen);
 	void MakeMove(const TBoard::TMove& m);
 	void MakeMove(const TBoard::TMove& m, const string& s);
 	void UndoMove(const TBoard::TMove& m);
+	void Undo();
 	void PrintStory() const;
 
 private:

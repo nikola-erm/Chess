@@ -5,7 +5,8 @@
 using namespace std;
 
 const string& TMoveSerializer::GetMoveName(int i) const {
-	return Names.at(i).at(CanonIndecies.at(i));
+	const auto& ret = Names.at(i).at(CanonIndecies.at(i));
+	return ret;
 }
 
 TMoveSerializer::TMoveSerializer(const TBoard::TMove* moves, int n, TBoard& board) {
@@ -35,6 +36,31 @@ TMoveSerializer::TMoveSerializer(const TBoard::TMove* moves, int n, TBoard& boar
 				break;
 			i++;
 		}
+	}
+}
+
+static void AddTransformFigure(vector<string>& res, TBoard::EMaskType maskType) {
+	char fig = '?';
+	switch (maskType) {
+	case TBoard::MT_WQUEEN:
+	case TBoard::MT_BQUEEN:
+		fig = 'Q';
+		break;
+	case TBoard::MT_WROOK:
+	case TBoard::MT_BROOK:
+		fig = 'R';
+		break;
+	case TBoard::MT_WBISHOP:
+	case TBoard::MT_BBISHOP:
+		fig = 'B';
+		break;
+	case TBoard::MT_WKNIGHT:
+	case TBoard::MT_BKNIGHT:
+		fig = 'N';
+		break;					
+	}
+	for (auto& s : res) {
+		s += fig;
 	}
 }
 
@@ -77,6 +103,8 @@ vector<string> TMoveSerializer::GenerateNames(const TBoard& board, const TBoard:
 	case TBoard::MT_BPAWN:
 		if (fstr[from][0] != fstr[to][0]) {
 		 	vector<string> ret = {	fstr[from].substr(0, 1) + fstr[to].substr(0, 1), fstr[from].substr(0, 1) + fstr[to], fstr[to] };
+		 	if (!(maskTo & m.Masks[0]))
+		 		AddTransformFigure(ret, m.MaskTypes[2]);
 		 	return ret;
 		} 
 		break;
@@ -88,6 +116,10 @@ vector<string> TMoveSerializer::GenerateNames(const TBoard& board, const TBoard:
 		res.push_back(fig + cp + fstr[to]);
 		res.push_back(fig + fstr[from][0] + cp + fstr[to]);
 		res.push_back(fig + fstr[from] + cp + fstr[to]);
+	}
+	if (m.MaskTypes[0] == TBoard::MT_WPAWN || m.MaskTypes[0] == TBoard::MT_BPAWN) {
+		if (!(maskTo & m.Masks[0]))
+		 	AddTransformFigure(res, m.MaskTypes[1]);
 	}
 	return res;
 }
