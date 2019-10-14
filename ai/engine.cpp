@@ -115,7 +115,9 @@ void TEngine::MakeUserMove() {
 		} else if (s == "undo") {
 			Boards.Undo();
 			Boards.Undo();
-			continue;
+			n = Boards.GenerateMovesUnchecked(FirstMoves) - FirstMoves;
+	        ms = TMoveSerializer(FirstMoves, n, Boards[0]);
+            continue;
 		} else if (s == "print") {
 			Boards[0].Print();
 			continue;

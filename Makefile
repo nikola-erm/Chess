@@ -15,7 +15,7 @@ all: .build/main.o .build/util.o .build/ai__engine.o .build/ai__heuristics.o .bu
 
 .INTERMEDIATE: .build/ai/engine.h
 
-.build/ai/engine.h: ai/engine.h ai/heuristics.h util.h board/board.h
+.build/ai/engine.h: ai/engine.h util.h board/board.h ai/heuristics.h
 
 .INTERMEDIATE: .build/ai/heuristics.h
 
@@ -29,13 +29,13 @@ all: .build/main.o .build/util.o .build/ai__engine.o .build/ai__heuristics.o .bu
 
 .build/board/move_serializer.h: board/move_serializer.h board/board.h
 
-.build/main.o: main.cpp .build/ai/engine.h .build/util.h .build/board/board.h .build/board/move_serializer.h
+.build/main.o: main.cpp .build/board/move_serializer.h .build/util.h .build/board/board.h .build/ai/engine.h
 	g++ $(FLAGS) main.cpp -o .build/main.o
 
 .build/util.o: util.cpp .build/util.h .build/config.h
 	g++ $(FLAGS) util.cpp -o .build/util.o
 
-.build/ai__engine.o: ai/engine.cpp .build/ai/engine.h .build/board/move_serializer.h
+.build/ai__engine.o: ai/engine.cpp .build/board/move_serializer.h .build/ai/engine.h
 	g++ $(FLAGS) ai/engine.cpp -o .build/ai__engine.o
 
 .build/ai__heuristics.o: ai/heuristics.cpp .build/ai/heuristics.h

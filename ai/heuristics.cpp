@@ -60,7 +60,7 @@ int THeuristics::DoubledPawnsFactor() {
 	int score = 0;
 #define DOUBLE_PAWN_FACTOR_FOR_COLUMN(c) \
 	if (Board.Masks[TBoard::MT_WPAWN] & TBoard::MaskColumn##c) score += 1 - BCNT(Board.Masks[TBoard::MT_WPAWN] & TBoard::MaskColumn##c); \
-	if (Board.Masks[TBoard::MT_BPAWN] & TBoard::MaskColumn##c) score += 1 - BCNT(Board.Masks[TBoard::MT_BPAWN] & TBoard::MaskColumn##c);
+	if (Board.Masks[TBoard::MT_BPAWN] & TBoard::MaskColumn##c) score -= 1 - BCNT(Board.Masks[TBoard::MT_BPAWN] & TBoard::MaskColumn##c);
 	DOUBLE_PAWN_FACTOR_FOR_COLUMN(A)
 	DOUBLE_PAWN_FACTOR_FOR_COLUMN(B)
 	DOUBLE_PAWN_FACTOR_FOR_COLUMN(C)
