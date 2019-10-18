@@ -15,6 +15,12 @@ public:
 	friend class THeuristics;
 	friend class TMoveSerializer;
 
+	enum EGameStatus {
+		GS_PLAY,
+		GS_LOSE,
+		GS_DRAW
+	};
+
 	enum EMaskType {
 		MT_NONE,
 		MT_HASH,
@@ -67,6 +73,8 @@ public:
 	void Print() const;
 	void PrintStory() const;
 	
+	EGameStatus Status;
+
 private:
 	int Turn;
 	TMask Masks[14];
@@ -141,6 +149,8 @@ private:
 	static TMask RequiredEnPassantMask[64][2];
 	static TMove EnPassantMove[64][2];
 	static TMask FigurePrints[14][64];
+	static TMask KnightByDistArea[64][3];
+	static TMask DiagonalMask[64];
 };
 
 class TBoardBatch {

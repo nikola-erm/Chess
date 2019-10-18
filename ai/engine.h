@@ -15,8 +15,9 @@ public:
 	int Dfs(int depth, int& cnt, int a = -INF, int b = INF);
 	int Dfs(int ti, TBoard::TMove* moves, TDfsLimits lim, int a, int b, int& cnt);
 	void MakeUserMove();
-	void MakeComputerMove(int posCntLim);
+	void MakeComputerMove(int posCntLim, vector<int> useFactors = THeuristics::DefaultUseFactors);
 	void Print() const;
+	void MakeSpecialAction();
 
 private:
 	TBoardBatch& Boards;

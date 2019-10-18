@@ -21,6 +21,7 @@ void TBoard::InitStandart() {
 	}
 	Masks[MT_HASH] = 15;
 	WasCount[15] = 1;
+	Status = GS_PLAY;
 }
 
 void TBoard::InitFromFEN(const string& fen) {
@@ -106,5 +107,6 @@ void TBoard::InitFromFEN(const string& fen) {
 		i++;
 	}
 	WasCount[Masks[MT_HASH]] = 1;
+	Status = GS_PLAY;
 	//ignore counters
 }

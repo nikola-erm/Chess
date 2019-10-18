@@ -1,6 +1,7 @@
 #include <ai/engine.h>
 #include <board/board.h>
 #include <board/move_serializer.h>
+#include <genetic/genetic.h>
 
 #include <util.h>
 
@@ -8,10 +9,10 @@
 
 using namespace std;
 
-TBoard::TMove moves[100];
-
 int main() {
-	TBoard::StaticInit();
+    TBoard::StaticInit();
+	//RunGenetic();
+	//return 0;
 	cerr << "Static init complete" << endl;
 	TBoardBatch boards;
 	cerr << "board batch initialized" << endl;
@@ -19,6 +20,9 @@ int main() {
 	cerr << "init complete" << endl;
 	while (true) {
 		engine.MakeUserMove();
-		engine.MakeComputerMove(3e5);
+		//engine.MakeSpecialAction();
+		//engine.MakeComputerMove(1e6, { 9, 0, 1, 0, 1, 1, 1, 0 });
+		//engine.MakeSpecialAction();
+		engine.MakeComputerMove(2e6, THeuristics::DefaultUseFactors);
 	}
 }

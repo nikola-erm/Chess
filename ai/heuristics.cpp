@@ -22,13 +22,25 @@ void THeuristics::UpdateGameStage() {
 
 int THeuristics::GetScore() {
 	UpdateGameStage();
+	int wk = GetBitPos(Board.Masks[TBoard::MT_WKING]);
+	int bk = GetBitPos(Board.Masks[TBoard::MT_BKING]);
 	int score = 0;
-	score += MaterialFactor() << 3;
-	score += ImmutablePiecesFactor();
-	score += PawnProgressFactor();
-	score += DoubledPawnsFactor() << 1;
-	score += IsolatedPawnFactor() << 1;
-	score += BlockedPawnFactor();
+	if (UseFactors[MATERIAL_FACTOR])
+		score += MaterialFactor() * UseFactors[MATERIAL_FACTOR];
+	/*if (UseFactors & IMMUTABLE_PIECE_FACTOR)
+		score += ImmutablePiecesFactor();
+	if (UseFactors & PAWN_PROGRESS_FACTOR)
+		score += PawnProgressFactor();
+	if (UseFactors & DOUBLE_PAWNS_FACTOR)
+		score += DoubledPawnsFactor() << 1;
+	if (UseFactors & ISOLATED_PAWN_FACTOR)
+		score += IsolatedPawnFactor() << 1;
+	if (UseFactors & BLOCKED_PAWN_FACTOR)
+		score += BlockedPawnFactor();
+	if (UseFactors & KNIGHT_ACTIVITY_FACTOR)
+		score += KnightActivityFactor(wk, bk);
+	if (UseFactors & BISHOP_ACTIVITY_FACTOR)
+		score += BishopActivityFactor(wk, bk);*/
 	return score;
 }
 
@@ -133,3 +145,22 @@ int THeuristics::BlockedPawnFactor() {
 		BCNT(Board.Masks[TBoard::MT_WPAWN] & (all >> 8));
 	return (Board.Turn & 1) ? -score : score;
 }
+
+int THeuristics::KnightActivityFactor(int wk, int bk) {
+	int score = BCNT(TBoard::KnightByDistArea[bk][0] & Board.Masks[TBoard::MT_WKNIGHT]) * 3
+			  + BCNT(TBoard::KnightByDistArea[bk][1] & Board.Masks[TBoard::MT_WKNIGHT]) * 2
+			  + BCNT(TBoard::KnightByDistArea[bk][1] & Board.Masks[TBoard::MT_WKNIGHT])
+			  - BCNT(TBoard::KnightByDistArea[wk][0] & Board.Masks[TBoard::MT_BKNIGHT]) * 3
+			  - BCNT(TBoard::KnightByDistArea[wk][1] & Board.Masks[TBoard::MT_BKNIGHT]) * 2
+			  - BCNT(TBoard::KnightByDistArea[wk][1] & Board.Masks[TBoard::MT_BKNIGHT]);
+	return (Board.Turn & 1) ? -score : score;
+}
+
+int THeuristics::BishopActivityFactor(int wk, int bk) {
+	int score = BCNT(TBoard::DiagonalMask[bk] & Board.Masks[TBoard::MT_WBISHOP])
+	          - BCNT(TBoard::DiagonalMask[wk] & Board.Masks[TBoard::MT_BBISHOP]);
+	return (Board.Turn & 1) ? -score : score;
+}
+
+const vector<int> THeuristics::DefaultUseFactors = { 8, 1, 1, 2, 2, 1, 1, 1 };
+

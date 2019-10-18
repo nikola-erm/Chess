@@ -102,7 +102,7 @@ vector<string> TMoveSerializer::GenerateNames(const TBoard& board, const TBoard:
 	case TBoard::MT_WPAWN:
 	case TBoard::MT_BPAWN:
 		if (fstr[from][0] != fstr[to][0]) {
-		 	vector<string> ret = {	fstr[from].substr(0, 1) + fstr[to].substr(0, 1), fstr[from].substr(0, 1) + fstr[to], fstr[to] };
+		 	vector<string> ret = { fstr[from].substr(0, 1) + fstr[to], fstr[from].substr(0, 1) + fstr[to].substr(0, 1), fstr[to] };
 		 	if (!(maskTo & m.Masks[0]))
 		 		AddTransformFigure(ret, m.MaskTypes[2]);
 		 	return ret;

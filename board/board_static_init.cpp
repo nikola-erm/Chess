@@ -3,6 +3,8 @@
 #include <util.h>
 
 #include <iostream>
+#include <queue>
+#include <cstring>
 
 void TBoard::StaticInit() {
 	for (int m = 0; m < 256; m++) {
@@ -44,6 +46,30 @@ void TBoard::StaticInit() {
 				KnightStepAll[from] |= GetMask(nx, ny);
 			}
 			KnightStep[from][wi] = -1;
+
+			for (int d = 0; d < 3; d++)
+		    	KnightByDistArea[from][d] = 0;
+		    static int was[8][8];
+		    memset(was, 0xff, sizeof(was));
+		    was[x][y] = 0;
+		    queue<pair<int, int>> q;
+		    q.push({x, y});
+		    while (!q.empty()) {
+		    	int x = q.front().first;
+		    	int y = q.front().second;
+		    	q.pop();
+		    	if (was[x][y] >= 3)
+		    		continue;
+		    	for (int dir = 0; dir < 8; dir++) {
+					int nx = x + dx[dir];
+					int ny = y + dy[dir];
+					if (!Valid(nx, ny) || was[nx][ny] != -1)
+						continue;
+					was[nx][ny] = was[x][y] + 1;
+					KnightByDistArea[from][was[nx][ny] - 1] |= GetMask(nx, ny);
+					q.push({nx, ny});
+				}	
+		    }
 		}
 		{
 			int dx[] = { 1, 0, -1, 0 };
@@ -63,6 +89,7 @@ void TBoard::StaticInit() {
 			}
 		}
 		{
+			DiagonalMask[from] = 0;
 			int dx[] = { 1, -1, -1, 1 };
 			int dy[] = { 1, 1, -1, -1 };
 			for (int dir = 0; dir < 4; dir++) {
@@ -77,6 +104,7 @@ void TBoard::StaticInit() {
 					ny += dy[dir];
 				}
 				BishopStep[from][dir][i] = -1;
+				DiagonalMask[from] |= BishopStepAll[from][dir];
 			}
 		}
 		{
@@ -133,6 +161,7 @@ void TBoard::StaticInit() {
 				m.Add(MT_WPAWN, from, Num(x+1, 5));
 				m.Add(MT_BPAWN, Num(x+1, 4));
 		    }
+		    
 		}
 		
 		FieldStr[from] = "";
@@ -258,3 +287,5 @@ int TBoard::LongCastlingWhiteRookDiff[2];
 TMask TBoard::RequiredEnPassantMask[64][2];
 TBoard::TMove TBoard::EnPassantMove[64][2];
 TMask TBoard::FigurePrints[14][64];
+TMask TBoard::KnightByDistArea[64][3];
+TMask TBoard::DiagonalMask[64];
