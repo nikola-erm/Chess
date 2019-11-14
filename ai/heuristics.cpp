@@ -6,7 +6,7 @@ THeuristics::THeuristics(const TBoard& board)
 	: Board(board) {}
 
 void THeuristics::UpdateGameStage() {
-	if (Board.Turn < 14) {
+	if (Board.Turn < 20) {
 		GameStage = GS_OPENNING;
 	} else {
 		for (int i = 0; i < 2; i++)
@@ -27,20 +27,24 @@ int THeuristics::GetScore() {
 	int score = 0;
 	if (UseFactors[MATERIAL_FACTOR])
 		score += MaterialFactor() * UseFactors[MATERIAL_FACTOR];
-	/*if (UseFactors & IMMUTABLE_PIECE_FACTOR)
-		score += ImmutablePiecesFactor();
-	if (UseFactors & PAWN_PROGRESS_FACTOR)
-		score += PawnProgressFactor();
-	if (UseFactors & DOUBLE_PAWNS_FACTOR)
-		score += DoubledPawnsFactor() << 1;
-	if (UseFactors & ISOLATED_PAWN_FACTOR)
-		score += IsolatedPawnFactor() << 1;
-	if (UseFactors & BLOCKED_PAWN_FACTOR)
-		score += BlockedPawnFactor();
-	if (UseFactors & KNIGHT_ACTIVITY_FACTOR)
-		score += KnightActivityFactor(wk, bk);
-	if (UseFactors & BISHOP_ACTIVITY_FACTOR)
-		score += BishopActivityFactor(wk, bk);*/
+	if (UseFactors[IMMUTABLE_PIECE_FACTOR])
+		score += ImmutablePiecesFactor() * UseFactors[IMMUTABLE_PIECE_FACTOR];
+	if (UseFactors[PAWN_PROGRESS_FACTOR])
+		score += PawnProgressFactor() * UseFactors[PAWN_PROGRESS_FACTOR];
+	if (UseFactors[DOUBLE_PAWNS_FACTOR])
+		score += DoubledPawnsFactor() * UseFactors[DOUBLE_PAWNS_FACTOR];
+	if (UseFactors[ISOLATED_PAWN_FACTOR])
+		score += IsolatedPawnFactor() * UseFactors[ISOLATED_PAWN_FACTOR];
+	if (UseFactors[BLOCKED_PAWN_FACTOR])
+		score += BlockedPawnFactor() * UseFactors[BLOCKED_PAWN_FACTOR];
+	if (UseFactors[KNIGHT_ACTIVITY_FACTOR])
+		score += KnightActivityFactor(wk, bk) * UseFactors[KNIGHT_ACTIVITY_FACTOR];
+	if (UseFactors[BISHOP_ACTIVITY_FACTOR])
+		score += BishopActivityFactor(wk, bk) * UseFactors[BISHOP_ACTIVITY_FACTOR];
+	if (UseFactors[KING_CENTRALITY_FACTOR])
+		score += KingCentralityFactor(wk, bk) * UseFactors[KING_CENTRALITY_FACTOR];
+	//if (UseFactors[DOUBLE_ROOK_FACTOR])
+	//	score += DoubleRookFactor() * UseFactors[DOUBLE_ROOK_FACTOR];
 	return score;
 }
 
@@ -162,5 +166,16 @@ int THeuristics::BishopActivityFactor(int wk, int bk) {
 	return (Board.Turn & 1) ? -score : score;
 }
 
-const vector<int> THeuristics::DefaultUseFactors = { 8, 1, 1, 2, 2, 1, 1, 1 };
+int THeuristics::KingCentralityFactor(int wk, int bk) {
+	if (GameStage != GS_ENDING)
+		return 0;
+	int score = TBoard::KingCentrality[wk] - TBoard::KingCentrality[bk];
+	return (Board.Turn & 1) ? -score : score;
+}
+
+int THeuristics::DoubleRookFactor() {
+	
+}
+
+const vector<int> THeuristics::DefaultUseFactors = { 9, 1, 1, 2, 2, 1, 1, 1, 1 };
 

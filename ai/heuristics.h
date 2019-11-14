@@ -26,7 +26,9 @@ public:
 		ISOLATED_PAWN_FACTOR,
 		BLOCKED_PAWN_FACTOR,
 		KNIGHT_ACTIVITY_FACTOR,
-		BISHOP_ACTIVITY_FACTOR
+		BISHOP_ACTIVITY_FACTOR,
+		KING_CENTRALITY_FACTOR,
+		DOUBLE_ROOK_FACTOR
 	};
 
 	static const vector<int> DefaultUseFactors;
@@ -44,4 +46,6 @@ private:
 	int BlockedPawnFactor();
 	int KnightActivityFactor(int wk, int bk);
 	int BishopActivityFactor(int wk, int bk);
+	int KingCentralityFactor(int wk, int bk);
+	int DoubleRookFactor();
 };

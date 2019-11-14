@@ -23,6 +23,6 @@ int main() {
 		//engine.MakeSpecialAction();
 		//engine.MakeComputerMove(1e6, { 9, 0, 1, 0, 1, 1, 1, 0 });
 		//engine.MakeSpecialAction();
-		engine.MakeComputerMove(2e6, THeuristics::DefaultUseFactors);
+		engine.MakeComputerMove(3e6, { 1, 0, 4, 0, 0, 1, 1, 4, 1 });
 	}
 }

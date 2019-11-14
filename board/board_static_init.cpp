@@ -163,7 +163,9 @@ void TBoard::StaticInit() {
 		    }
 		    
 		}
-		
+
+		KingCentrality[from] = min(x + 1, 8 - x) * min(y + 1, 8 - y) - 1;
+
 		FieldStr[from] = "";
 		FieldStr[from] += (char)('a' + x);
 		FieldStr[from] += (char)('1' + y);
@@ -289,3 +291,4 @@ TBoard::TMove TBoard::EnPassantMove[64][2];
 TMask TBoard::FigurePrints[14][64];
 TMask TBoard::KnightByDistArea[64][3];
 TMask TBoard::DiagonalMask[64];
+int TBoard::KingCentrality[64];

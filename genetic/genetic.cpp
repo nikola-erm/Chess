@@ -39,9 +39,9 @@ vector<vector<int>> PlayTournament(const vector<vector<int>>& members) {
 				
 		}
 		cerr << endl;
-		boards[0].PrintStory();
-		cerr << endl;
-		if (boards[0].Status != TBoard::GS_LOSE) {
+		//boards[0].PrintStory();
+		//cerr << endl;
+		if (turn == 150 || boards[0].Status != TBoard::GS_LOSE) {
 			scores[wi] += 0.5;
 			scores[bi] += 0.5;
 		} else {
@@ -99,20 +99,18 @@ vector<vector<int>> CreateMembers(const vector<vector<int>>& parents) {
 	members.push_back(parents[0]);
 	members.push_back(parents[1]);
 	members.push_back(CreateGibrid(parents[0], parents[1]));
-	members.push_back(CreateGibrid(parents[0], parents[1]));
+	//members.push_back(CreateGibrid(parents[0], parents[1]));
 	members.push_back(CreateChild(parents[0]));
-	members.push_back(CreateChild(parents[0]));
+	//members.push_back(CreateChild(parents[0]));
 	members.push_back(CreateChild(parents[1]));
-	members.push_back(CreateChild(parents[1]));
+	//members.push_back(CreateChild(parents[1]));
 	return members;
 }
 
 void RunGenetic() {
 	vector<vector<int>> bestMembers = {
-		{ 9, 0, 1, 0, 1, 1, 1, 0 },
-		{ 8, 1, 0, 0, 0, 0, 0, 1 }
-		//THeuristics::DefaultUseFactors,
-		//{ 8, 0, 0, 0, 0, 0, 0, 0 }
+		{ 1, 0, 4, 0, 0, 1, 1, 4, 1 },
+		{ 1, 0, 3, 0, 0, 1, 1, 3, 1 }
 	};
 	for (int itr = 0; itr < 10; itr++) {
 		cerr << "Tournament #" << itr + 1 << endl;
