@@ -19,6 +19,6 @@ int main() {
 	cerr << "init complete" << endl;
 	while (true) {
 		engine.MakeUserMove();
-		engine.MakeComputerMove(3e5);
+		engine.MakeComputerMoveBetter(3e6);
 	}
 }

@@ -10,12 +10,21 @@ public:
 		int Force;
 	};
 
+    struct TDfsResult {
+        int Score;
+        int StumbleScore;
+
+        TDfsResult GetNormalized() const;
+    };
+
 	TEngine(TBoardBatch& boards);
 
-	int Dfs(int depth, int& cnt, int a = -INF, int b = INF);
-	int Dfs(int ti, TBoard::TMove* moves, TDfsLimits lim, int a, int b, int& cnt);
+	TDfsResult Dfs(int depth, int& cnt, int a = -INF, int b = INF);
+	TDfsResult Dfs(int ti, TBoard::TMove* moves, TDfsLimits lim, int a, int b, int& cnt, bool opTurn);
+    int DfsFixed(int ti, TBoard::TMove* moves, int depth, int& cnt, int a);
 	void MakeUserMove();
 	void MakeComputerMove(int posCntLim);
+    void MakeComputerMoveBetter(int posCntLim);
 	void Print() const;
 
 private:
@@ -26,3 +35,5 @@ private:
 	vector<THeuristics> Heuristics;
 
 };
+
+TEngine::TDfsResult operator -(const TEngine::TDfsResult& score);
