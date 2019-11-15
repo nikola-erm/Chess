@@ -6,7 +6,7 @@ THeuristics::THeuristics(const TBoard& board)
 	: Board(board) {}
 
 void THeuristics::UpdateGameStage() {
-	if (Board.Turn < 14) {
+	if (Board.Turn < 20) {
 		GameStage = GS_OPENNING;
 	} else {
 		for (int i = 0; i < 2; i++)
@@ -22,13 +22,29 @@ void THeuristics::UpdateGameStage() {
 
 int THeuristics::GetScore() {
 	UpdateGameStage();
+	int wk = GetBitPos(Board.Masks[TBoard::MT_WKING]);
+	int bk = GetBitPos(Board.Masks[TBoard::MT_BKING]);
 	int score = 0;
-	score += MaterialFactor() << 3;
-	score += ImmutablePiecesFactor();
-	score += PawnProgressFactor();
-	score += DoubledPawnsFactor() << 1;
-	score += IsolatedPawnFactor() << 1;
-	score += BlockedPawnFactor();
+	if (UseFactors[MATERIAL_FACTOR])
+		score += MaterialFactor() * UseFactors[MATERIAL_FACTOR];
+	if (UseFactors[IMMUTABLE_PIECE_FACTOR])
+		score += ImmutablePiecesFactor() * UseFactors[IMMUTABLE_PIECE_FACTOR];
+	if (UseFactors[PAWN_PROGRESS_FACTOR])
+		score += PawnProgressFactor() * UseFactors[PAWN_PROGRESS_FACTOR];
+	if (UseFactors[DOUBLE_PAWNS_FACTOR])
+		score += DoubledPawnsFactor() * UseFactors[DOUBLE_PAWNS_FACTOR];
+	if (UseFactors[ISOLATED_PAWN_FACTOR])
+		score += IsolatedPawnFactor() * UseFactors[ISOLATED_PAWN_FACTOR];
+	if (UseFactors[BLOCKED_PAWN_FACTOR])
+		score += BlockedPawnFactor() * UseFactors[BLOCKED_PAWN_FACTOR];
+	if (UseFactors[KNIGHT_ACTIVITY_FACTOR])
+		score += KnightActivityFactor(wk, bk) * UseFactors[KNIGHT_ACTIVITY_FACTOR];
+	if (UseFactors[BISHOP_ACTIVITY_FACTOR])
+		score += BishopActivityFactor(wk, bk) * UseFactors[BISHOP_ACTIVITY_FACTOR];
+	if (UseFactors[KING_CENTRALITY_FACTOR])
+		score += KingCentralityFactor(wk, bk) * UseFactors[KING_CENTRALITY_FACTOR];
+	//if (UseFactors[DOUBLE_ROOK_FACTOR])
+	//	score += DoubleRookFactor() * UseFactors[DOUBLE_ROOK_FACTOR];
 	return score;
 }
 
@@ -133,3 +149,32 @@ int THeuristics::BlockedPawnFactor() {
 		BCNT(Board.Masks[TBoard::MT_WPAWN] & (all >> 8));
 	return (Board.Turn & 1) ? -score : score;
 }
+
+int THeuristics::KnightActivityFactor(int wk, int bk) {
+	int score = BCNT(TBoard::KnightByDistArea[bk][0] & Board.Masks[TBoard::MT_WKNIGHT]) * 3
+			  + BCNT(TBoard::KnightByDistArea[bk][1] & Board.Masks[TBoard::MT_WKNIGHT]) * 2
+			  + BCNT(TBoard::KnightByDistArea[bk][1] & Board.Masks[TBoard::MT_WKNIGHT])
+			  - BCNT(TBoard::KnightByDistArea[wk][0] & Board.Masks[TBoard::MT_BKNIGHT]) * 3
+			  - BCNT(TBoard::KnightByDistArea[wk][1] & Board.Masks[TBoard::MT_BKNIGHT]) * 2
+			  - BCNT(TBoard::KnightByDistArea[wk][1] & Board.Masks[TBoard::MT_BKNIGHT]);
+	return (Board.Turn & 1) ? -score : score;
+}
+
+int THeuristics::BishopActivityFactor(int wk, int bk) {
+	int score = BCNT(TBoard::DiagonalMask[bk] & Board.Masks[TBoard::MT_WBISHOP])
+	          - BCNT(TBoard::DiagonalMask[wk] & Board.Masks[TBoard::MT_BBISHOP]);
+	return (Board.Turn & 1) ? -score : score;
+}
+
+int THeuristics::KingCentralityFactor(int wk, int bk) {
+	if (GameStage != GS_ENDING)
+		return 0;
+	int score = TBoard::KingCentrality[wk] - TBoard::KingCentrality[bk];
+	return (Board.Turn & 1) ? -score : score;
+}
+
+int THeuristics::DoubleRookFactor() {
+	
+}
+
+const vector<int> THeuristics::DefaultUseFactors = { 9, 1, 1, 2, 2, 1, 1, 1, 1 };

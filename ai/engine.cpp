@@ -168,6 +168,10 @@ int TEngine::DfsFixed(int ti, TBoard::TMove* moves, int depth, int& cnt, int a) 
 	if (res < -INF) {
 		return board.IsMyKingUnderAttack() ? -INF : 0;
 	}
+    if (res < 100 - INF)
+        res++;
+    if (res > INF - 100)
+        res--;
     if (depth == 1)
         res = (Heuristics[ti].GetScore() + 2 * res) / 3;
     return res;
@@ -207,8 +211,10 @@ void TEngine::MakeComputerMoveBetter(int posCntLim) {
                 newIobs.push_back(i);
             }
 			Boards.UndoMove(moves[i]);
-            if (!newIobs.empty() && breakImm)
+            if (!newIobs.empty() && breakImm) {
+                iobs = newIobs;
                 goto COMPLEETING;
+            }
 		}
         cerr << "total cnt: " << cnt << endl; 
         if (!newIobs.empty()) {

@@ -15,7 +15,7 @@ all: .build/main.o .build/util.o .build/ai__engine.o .build/ai__estimate_tree_si
 
 .INTERMEDIATE: .build/ai/engine.h
 
-.build/ai/engine.h: ai/engine.h board/board.h ai/heuristics.h util.h
+.build/ai/engine.h: ai/engine.h ai/heuristics.h board/board.h util.h
 
 .INTERMEDIATE: .build/ai/estimate_tree_size.h
 
@@ -33,16 +33,16 @@ all: .build/main.o .build/util.o .build/ai__engine.o .build/ai__estimate_tree_si
 
 .build/board/move_serializer.h: board/move_serializer.h board/board.h
 
-.build/main.o: main.cpp .build/board/board.h .build/util.h .build/ai/engine.h .build/board/move_serializer.h
+.build/main.o: main.cpp .build/util.h .build/board/move_serializer.h .build/ai/engine.h .build/board/board.h
 	g++ $(FLAGS) main.cpp -o .build/main.o
 
-.build/util.o: util.cpp .build/config.h .build/util.h
+.build/util.o: util.cpp .build/util.h .build/config.h
 	g++ $(FLAGS) util.cpp -o .build/util.o
 
-.build/ai__engine.o: ai/engine.cpp .build/ai/engine.h .build/board/move_serializer.h .build/ai/estimate_tree_size.h
+.build/ai__engine.o: ai/engine.cpp .build/board/move_serializer.h .build/ai/estimate_tree_size.h .build/ai/engine.h
 	g++ $(FLAGS) ai/engine.cpp -o .build/ai__engine.o
 
-.build/ai__estimate_tree_size.o: ai/estimate_tree_size.cpp
+.build/ai__estimate_tree_size.o: ai/estimate_tree_size.cpp .build/util.h
 	g++ $(FLAGS) ai/estimate_tree_size.cpp -o .build/ai__estimate_tree_size.o
 
 .build/ai__heuristics.o: ai/heuristics.cpp .build/ai/heuristics.h
@@ -63,6 +63,6 @@ all: .build/main.o .build/util.o .build/ai__engine.o .build/ai__estimate_tree_si
 .build/board__board_static_init.o: board/board_static_init.cpp .build/board/board.h .build/util.h
 	g++ $(FLAGS) board/board_static_init.cpp -o .build/board__board_static_init.o
 
-.build/board__move_serializer.o: board/move_serializer.cpp .build/board/move_serializer.h .build/util.h
+.build/board__move_serializer.o: board/move_serializer.cpp .build/util.h .build/board/move_serializer.h
 	g++ $(FLAGS) board/move_serializer.cpp -o .build/board__move_serializer.o
 

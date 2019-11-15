@@ -141,6 +141,9 @@ private:
 	static TMask RequiredEnPassantMask[64][2];
 	static TMove EnPassantMove[64][2];
 	static TMask FigurePrints[14][64];
+    static TMask KnightByDistArea[64][3];
+	static TMask DiagonalMask[64];
+	static int KingCentrality[64];
 };
 
 class TBoardBatch {

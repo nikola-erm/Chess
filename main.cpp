@@ -18,7 +18,7 @@ int main() {
 	TEngine engine(boards);
 	cerr << "init complete" << endl;
 	while (true) {
-		engine.MakeUserMove();
-		engine.MakeComputerMoveBetter(3e6);
+        engine.MakeComputerMoveBetter(4e6);
+        engine.MakeUserMove();
 	}
 }
