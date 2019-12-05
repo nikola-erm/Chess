@@ -20,37 +20,47 @@ vector<vector<int>> PlayTournament(const vector<vector<int>>& members) {
 			cerr << " " << c;
 		cerr << endl;		
 	}
-	for (int wi = 0; wi < members.size(); wi++)
-	for (int bi = 0; bi < members.size(); bi++) {
-		if (wi == bi) continue;
-		cerr << "Game " << wi << " vs " << bi << endl;
-		TBoardBatch boards;
-		TEngine engine(boards);
-		int turn = 1;
-		bool isWhite = true;
-		while (boards[0].Status == TBoard::GS_PLAY) {
-			engine.MakeComputerMove(5e4, members[isWhite ? wi : bi]);
-			isWhite = !isWhite;
-			if (isWhite) turn++;
-			cerr << ".";
-			if (turn == 150) {
-				break;
-			}
-				
-		}
-		cerr << endl;
-		//boards[0].PrintStory();
-		//cerr << endl;
-		if (turn == 150 || boards[0].Status != TBoard::GS_LOSE) {
-			scores[wi] += 0.5;
-			scores[bi] += 0.5;
-		} else {
-			if (isWhite) turn--;
-			double winRes = 0.75 + 0.25 / turn;
-			scores[wi] += isWhite ? 1.0 - winRes : winRes;
-			scores[bi] += isWhite ? winRes : 1.0 - winRes;
-		}
-	}
+    cerr << " ";
+    for (int i = 0; i < members.size(); i++)
+        cerr << i;
+    cerr << endl;
+	for (int wi = 0; wi < members.size(); wi++) {
+        string info;
+        info += (char)(wi + '0');
+        for (int bi = 0; bi < members.size(); bi++) {
+    		if (wi == bi) {
+                info += '\\';
+                continue;
+    		}
+    		TBoardBatch boards;
+    		TEngine engine(boards);
+    		int turn = 1;
+    		bool isWhite = true;
+    		while (boards[0].UpdateStatus() == TBoard::GS_PLAY) {
+    			//engine.MakeComputerMove(5e4, members[isWhite ? wi : bi]);
+                engine.MakeComputerMoveBetter(2e7, members[isWhite ? wi : bi]);
+                isWhite = !isWhite;
+    			if (isWhite) turn++;
+    			cerr << "\r" << info << turn;
+    			if (turn == 150) {
+    				break;
+    			}   				
+    		}
+            cerr << "\r" << info << "   ";
+    		if (turn == 150 || boards[0].Status != TBoard::GS_LOSE) {
+    			info += '.';
+                scores[wi] += 0.5;
+    			scores[bi] += 0.5;
+    		} else {
+    			if (isWhite) turn--;
+    			double winRes = 0.75 + 0.25 / turn;
+    			scores[wi] += isWhite ? 1.0 - winRes : winRes;
+    			scores[bi] += isWhite ? winRes : 1.0 - winRes;
+                info += isWhite ? '-' : '+';
+    		}
+	    }
+        cerr << "\r" << info << endl;
+    }
 	cerr << "Tournament completed\n";
 	cerr << "scores: \n";
 	int iob = 0, iosb = 1;
@@ -74,8 +84,15 @@ vector<vector<int>> PlayTournament(const vector<vector<int>>& members) {
 
 vector<int> CreateGibrid(const vector<int>& p1, const vector<int>& p2) {
     vector<int> res;
-	for (int i = 0; i < p1.size(); i++)
-		res.push_back(Rand(2) ? p1[i] : p2[i]);
+	for (int i = 0; i < p1.size(); i++) {
+		int l = min(p1[i], p2[i]);
+        int r = max(p1[i], p2[i]);
+        if (l == r) {
+            l = max(0, l-1);
+            r = min(16, r + 1);
+        }
+        res.push_back(l + Rand(r - l + 1));
+    }
 	return res;
 }
 
@@ -94,23 +111,70 @@ vector<int> CreateChild(const vector<int>& p) {
 	return res;
 }
 
+static bool HasDup(const vector<vector<int>>& a) {
+    for (int i = a.size() - 2; i >= 0; i--)
+        if (a.back() == a[i])
+            return true;
+    return false;
+}
+
 vector<vector<int>> CreateMembers(const vector<vector<int>>& parents) {
 	vector<vector<int>> members;
 	members.push_back(parents[0]);
 	members.push_back(parents[1]);
-	members.push_back(CreateGibrid(parents[0], parents[1]));
-	//members.push_back(CreateGibrid(parents[0], parents[1]));
-	members.push_back(CreateChild(parents[0]));
-	//members.push_back(CreateChild(parents[0]));
-	members.push_back(CreateChild(parents[1]));
-	//members.push_back(CreateChild(parents[1]));
-	return members;
+    cerr << "Generatig members" << endl;
+    members.push_back(members.back());
+    while (HasDup(members)) {
+        cerr << 2 << " ";
+        members.pop_back();
+        members.push_back(CreateGibrid(parents[0], parents[1]));
+    }
+    
+    members.push_back(members.back());
+    while (HasDup(members)) {
+        cerr << 3 << " ";
+        members.pop_back();
+        members.push_back(CreateGibrid(parents[0], parents[1]));
+	}
+
+    members.push_back(members.back());
+    while (HasDup(members)) {
+        cerr << 4 << " ";
+        members.pop_back();
+        members.push_back(CreateChild(parents[0]));
+	}
+
+    members.push_back(members.back());
+    while (HasDup(members)) {
+        cerr << 5 << " ";
+        members.pop_back();
+        members.push_back(CreateChild(parents[0]));
+    }
+	
+    members.push_back(members.back());
+    while (HasDup(members)) {
+        cerr << 6 << " ";
+        members.pop_back();
+        members.push_back(CreateChild(parents[1]));
+    }
+
+    members.push_back(members.back());
+    while (HasDup(members)) {
+        cerr << 7 << " ";
+        members.pop_back();
+    	members.push_back(CreateChild(parents[1]));
+	}
+    cerr << endl;
+    return members;
 }
 
 void RunGenetic() {
 	vector<vector<int>> bestMembers = {
-		{ 1, 0, 4, 0, 0, 1, 1, 4, 1 },
-		{ 1, 0, 3, 0, 0, 1, 1, 3, 1 }
+		// 7 2 0 0 1 1 1 1 2
+        { 9, 4, 1, 0, 1, 0, 1, 1, 2, 1, 1 },
+        { 9, 4, 1, 0, 1, 0, 1, 1, 2, 1, 0 }
+        //{ 4, 1, 0, 1, 0, 3, 0, 0, 1 },
+		//{ 4, 0, 4, 0, 1, 0, 4, 0, 0 }
 	};
 	for (int itr = 0; itr < 10; itr++) {
 		cerr << "Tournament #" << itr + 1 << endl;

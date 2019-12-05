@@ -16,7 +16,7 @@ public:
 	void UpdateGameStage();
 	int GetScore();
 
-	vector<int> UseFactors;
+	vector<int> UseFactors = DefaultUseFactors;
 
 	enum EFactors {
 		MATERIAL_FACTOR,
@@ -28,6 +28,9 @@ public:
 		KNIGHT_ACTIVITY_FACTOR,
 		BISHOP_ACTIVITY_FACTOR,
 		KING_CENTRALITY_FACTOR,
+        PAWN_RAW_FACTOR,
+        PAWN_STRIKE_FACTOR,
+        KING_BETWEEN_ROOKS_FACTOR,
 		DOUBLE_ROOK_FACTOR
 	};
 
@@ -47,5 +50,8 @@ private:
 	int KnightActivityFactor(int wk, int bk);
 	int BishopActivityFactor(int wk, int bk);
 	int KingCentralityFactor(int wk, int bk);
+    int PawnRawFactor();
+    int PawnStrikeFactor();
+    int KingBetweenRooksFactor(int wk, int bk);
 	int DoubleRookFactor();
 };

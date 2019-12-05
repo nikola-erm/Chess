@@ -73,6 +73,8 @@ public:
 	void Print() const;
 	void PrintStory() const;
 	
+    //Slow!
+    EGameStatus UpdateStatus();
 	EGameStatus Status;
 
 private:

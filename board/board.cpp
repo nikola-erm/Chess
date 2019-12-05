@@ -173,6 +173,22 @@ int TBoard::CurrentPositionWasCount() const {
 	return WasCount.at(Masks[MT_HASH]);
 }
 
+TBoard::EGameStatus TBoard::UpdateStatus() {
+    if (CurrentPositionWasCount() >= 3)
+        return Status = GS_DRAW;
+    static TMove moves[100];
+    int n = GenerateMovesUnchecked(moves) - moves;
+    bool hasValid = false;
+    for (int i = 0; i < n && !hasValid; i++) {
+        MakeMove(moves[i]);
+        hasValid = !IsOpKingUnderAttack();
+        UndoMove(moves[i]);
+    }
+    if (hasValid)
+        return Status = GS_PLAY;
+    return Status = IsMyKingUnderAttack() ? GS_LOSE : GS_DRAW;
+}
+
 void TBoard::Print() const {
 	cout << (Turn / 2 + 1) << ". ";
 	if (Turn & 1)

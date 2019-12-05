@@ -43,6 +43,12 @@ int THeuristics::GetScore() {
 		score += BishopActivityFactor(wk, bk) * UseFactors[BISHOP_ACTIVITY_FACTOR];
 	if (UseFactors[KING_CENTRALITY_FACTOR])
 		score += KingCentralityFactor(wk, bk) * UseFactors[KING_CENTRALITY_FACTOR];
+    if (UseFactors[PAWN_RAW_FACTOR])
+        score += PawnRawFactor() * UseFactors[PAWN_RAW_FACTOR];
+    if (UseFactors[PAWN_STRIKE_FACTOR])
+        score += PawnStrikeFactor() * UseFactors[PAWN_STRIKE_FACTOR];
+    if (UseFactors[KING_BETWEEN_ROOKS_FACTOR])
+        score += KingBetweenRooksFactor(wk, bk) * UseFactors[KING_BETWEEN_ROOKS_FACTOR];
 	//if (UseFactors[DOUBLE_ROOK_FACTOR])
 	//	score += DoubleRookFactor() * UseFactors[DOUBLE_ROOK_FACTOR];
 	return score;
@@ -173,9 +179,33 @@ int THeuristics::KingCentralityFactor(int wk, int bk) {
 	return (Board.Turn & 1) ? -score : score;
 }
 
-int THeuristics::DoubleRookFactor() {
-	
+int THeuristics::PawnRawFactor() {
+    int score = BCNT((~TBoard::MaskColumnA) & Board.Masks[TBoard::MT_WPAWN] & (Board.Masks[TBoard::MT_WPAWN] << 1))
+              - BCNT((~TBoard::MaskColumnA) & Board.Masks[TBoard::MT_BPAWN] & (Board.Masks[TBoard::MT_BPAWN] << 1));
+    return (Board.Turn & 1) ? -score : score;
+
 }
 
-const vector<int> THeuristics::DefaultUseFactors = { 9, 1, 1, 2, 2, 1, 1, 1, 1 };
+int THeuristics::PawnStrikeFactor() {
+    int score = BCNT((((~TBoard::MaskColumnA) & Board.Masks[TBoard::MT_WPAWN]) << 7) & (
+                    Board.Masks[TBoard::MT_BKING] | Board.Masks[TBoard::MT_BQUEEN] | Board.Masks[TBoard::MT_BROOK] | Board.Masks[TBoard::MT_BBISHOP] | Board.Masks[TBoard::MT_BKNIGHT]
+                )) -
+                BCNT((((~TBoard::MaskColumnH) & Board.Masks[TBoard::MT_BPAWN]) << 9) & (
+                    Board.Masks[TBoard::MT_WKING] | Board.Masks[TBoard::MT_WQUEEN] | Board.Masks[TBoard::MT_WROOK] | Board.Masks[TBoard::MT_WBISHOP] | Board.Masks[TBoard::MT_WKNIGHT]
+                ));
+    return (Board.Turn & 1) ? -score : score;
+}
 
+int THeuristics::KingBetweenRooksFactor(int wk, int bk) {
+    int score = (int)((Board.Masks[TBoard::MT_BROOK] & TBoard::RookStepAll[bk][0]) && (Board.Masks[TBoard::MT_BROOK] & TBoard::RookStepAll[bk][2]))
+              + (int)((Board.Masks[TBoard::MT_BROOK] & TBoard::RookStepAll[bk][1]) && (Board.Masks[TBoard::MT_BROOK] & TBoard::RookStepAll[bk][3]))
+              - (int)((Board.Masks[TBoard::MT_WROOK] & TBoard::RookStepAll[wk][0]) && (Board.Masks[TBoard::MT_WROOK] & TBoard::RookStepAll[wk][2]))
+              - (int)((Board.Masks[TBoard::MT_WROOK] & TBoard::RookStepAll[wk][1]) && (Board.Masks[TBoard::MT_WROOK] & TBoard::RookStepAll[wk][3]));
+    return (Board.Turn & 1) ? -score : score;
+}
+
+int THeuristics::DoubleRookFactor() {
+}
+
+//const vector<int> THeuristics::DefaultUseFactors = { 9, 1, 1, 2, 2, 1, 1, 1, 1, 0 };
+const vector<int> THeuristics::DefaultUseFactors = { 9, 5, 1, 0, 1, 0, 1, 2, 2, 1, 0, 1 };

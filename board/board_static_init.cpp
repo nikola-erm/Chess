@@ -2,9 +2,9 @@
 
 #include <util.h>
 
+#include <cstring>
 #include <iostream>
 #include <queue>
-#include <cstring>
 
 void TBoard::StaticInit() {
 	for (int m = 0; m < 256; m++) {
@@ -46,7 +46,6 @@ void TBoard::StaticInit() {
 				KnightStepAll[from] |= GetMask(nx, ny);
 			}
 			KnightStep[from][wi] = -1;
-
 			for (int d = 0; d < 3; d++)
 		    	KnightByDistArea[from][d] = 0;
 		    static int was[8][8];
@@ -89,6 +88,25 @@ void TBoard::StaticInit() {
 			}
 		}
 		{
+			DiagonalMask[from] = 0;
+			int dx[] = { 1, -1, -1, 1 };
+			int dy[] = { 1, 1, -1, -1 };
+			for (int dir = 0; dir < 4; dir++) {
+				BishopStepAll[from][dir] = 0;
+				int i = 0;
+				int nx = x + dx[dir];
+				int ny = y + dy[dir];
+				while (Valid(nx, ny)) {
+					BishopStepAll[from][dir] |= GetMask(BishopStep[from][dir][i] = Num(nx, ny));
+					i++;
+					nx += dx[dir];
+					ny += dy[dir];
+				}
+				BishopStep[from][dir][i] = -1;
+				DiagonalMask[from] |= BishopStepAll[from][dir];
+			}
+		}
+        {
 			DiagonalMask[from] = 0;
 			int dx[] = { 1, -1, -1, 1 };
 			int dy[] = { 1, 1, -1, -1 };
@@ -164,7 +182,7 @@ void TBoard::StaticInit() {
 		    
 		}
 
-		KingCentrality[from] = min(x + 1, 8 - x) * min(y + 1, 8 - y) - 1;
+        KingCentrality[from] = min(x + 1, 8 - x) * min(y + 1, 8 - y) - 1;
 
 		FieldStr[from] = "";
 		FieldStr[from] += (char)('a' + x);
