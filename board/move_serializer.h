@@ -5,9 +5,11 @@
 #include <vector>
 #include <string>
 
+namespace NBoard {
+
 class TMoveSerializer {
 public:
-	TMoveSerializer(const TBoard::TMove* moves, int n, TBoard& board);
+	TMoveSerializer(const TMove* moves, int n, TBoard& board);
 	int GetMoveIndex(const std::string& s) const;
 	const std::string& GetMoveName(int i) const;
 	void ShowValid() const;
@@ -18,5 +20,7 @@ private:
 	std::vector<int> CanonIndecies;
 	std::unordered_map<std::string, std::vector<int>> NameToValid, NameToInvalid;
 
-	static std::vector<std::string> GenerateNames(const TBoard& board, const TBoard::TMove& m);
+	static std::vector<std::string> GenerateNames(const TBoard& board, const TMove& m);
 };
+
+} // NBoard

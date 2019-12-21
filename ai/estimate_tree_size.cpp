@@ -4,11 +4,11 @@
 
 #include <iostream> 
 
-static TBoard::TMove moves[100];
+static NBoard::TMove moves[100];
 
-vector<double> EstimateTreeSize(TBoard& board, int depth, int itrCnt) {
+vector<double> EstimateTreeSize(NBoard::TBoard& board, int depth, int itrCnt) {
     //cerr << "Estimate tree size";
-    vector<TBoard::TMove> story(depth);
+    vector<NBoard::TMove> story(depth);
     vector<double> ans(depth + 1, 0.0);
     ans[0] = itrCnt;
     for (int itr = 0; itr < itrCnt; itr++) {

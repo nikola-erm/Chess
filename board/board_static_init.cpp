@@ -6,6 +6,8 @@
 #include <iostream>
 #include <queue>
 
+using namespace NBoard;
+
 void TBoard::StaticInit() {
 	for (int m = 0; m < 256; m++) {
 		int wi = 0;
@@ -305,7 +307,7 @@ int TBoard::ShortCastlingWhiteRookDiff[2];
 int TBoard::LongCastlingBlackRookDiff[2];
 int TBoard::LongCastlingWhiteRookDiff[2];
 TMask TBoard::RequiredEnPassantMask[64][2];
-TBoard::TMove TBoard::EnPassantMove[64][2];
+TMove TBoard::EnPassantMove[64][2];
 TMask TBoard::FigurePrints[14][64];
 TMask TBoard::KnightByDistArea[64][3];
 TMask TBoard::DiagonalMask[64];

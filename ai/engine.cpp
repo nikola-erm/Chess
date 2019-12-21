@@ -14,7 +14,7 @@ using namespace std;
 #define LOG_AI(x) cerr << x;
 #define PRINT(x) cout << x;
 
-TEngine::TEngine(TBoardBatch& boards)
+TEngine::TEngine(NBoard::TBoardBatch& boards)
 	: Boards(boards) 
 {
 	for (int i = 0; i < THREAD_COUNT; i++)
@@ -67,7 +67,7 @@ TEngine::TDfsResult TEngine::Dfs(int depth, int& cnt, int a, int b) {
 	return res;
 }
 
-TEngine::TDfsResult TEngine::Dfs(int ti, TBoard::TMove* moves, TDfsLimits lim, int a, int b, int& cnt, bool opTurn) {
+TEngine::TDfsResult TEngine::Dfs(int ti, NBoard::TMove* moves, TDfsLimits lim, int a, int b, int& cnt, bool opTurn) {
 	cnt++;
 	auto& board = Boards[ti];
 	if (board.CurrentPositionWasCount() >= 3) {
@@ -122,7 +122,7 @@ TEngine::TDfsResult TEngine::Dfs(int ti, TBoard::TMove* moves, TDfsLimits lim, i
 	return res;
 }
 
-int TEngine::DfsFixed(int ti, TBoard::TMove* moves, int depth, long long& cnt, int a) {
+int TEngine::DfsFixed(int ti, NBoard::TMove* moves, int depth, long long& cnt, int a) {
     if (a > INF - depth - 2)
         a++;
     if (a < -INF + depth + 2)
@@ -188,9 +188,9 @@ int TEngine::DfsFixed(int ti, TBoard::TMove* moves, int depth, long long& cnt, i
 void TEngine::MakeComputerMoveBetter(long long posCntLim, vector<int> useFactors) {
     for (auto& h : Heuristics)
         h.UseFactors = useFactors;
-    TBoard::TMove moves[100];
+    NBoard::TMove moves[100];
 	int n = Boards.GenerateMovesUnchecked(moves) - moves;
-	TMoveSerializer ms(moves, n, Boards[0]);
+	NBoard::TMoveSerializer ms(moves, n, Boards[0]);
     vector<int> iobs;
 	for (int i = 0; i < n; i++) {
 		Boards[0].MakeMove(moves[i]);
@@ -249,7 +249,7 @@ void TEngine::MakeComputerMoveBetter(long long posCntLim, vector<int> useFactors
     			    int score = -DfsFixed(ti, Moves[ti], depth, cnt[ti], -a + 1);            
                     {
                         lock_guard<mutex> guard(printMutex);
-                        LOG_AI(ms.GetMoveName(i) << ": " << score << " => " << (score >= a ? "good" : "weak") << endl)
+                        LOG_AI(ms.GetMoveName(i) << ": " << score << " => " << (score >= a ? "good" : "weak") << " (thread " << ti << ")" << endl)
                     }
                     //cerr << ".";
                     {
@@ -316,7 +316,7 @@ void TEngine::MakeComputerMoveBetter(long long posCntLim, vector<int> useFactors
 
 void TEngine::MakeUserMove() {
 	int n = Boards.GenerateMovesUnchecked(FirstMoves) - FirstMoves;
-	TMoveSerializer ms(FirstMoves, n, Boards[0]);
+	NBoard::TMoveSerializer ms(FirstMoves, n, Boards[0]);
 	int i;
 	do {
 		string s;
@@ -333,7 +333,7 @@ void TEngine::MakeUserMove() {
 			Boards.Undo();
 			Boards.Undo();
 			n = Boards.GenerateMovesUnchecked(FirstMoves) - FirstMoves;
-	        ms = TMoveSerializer(FirstMoves, n, Boards[0]);
+	        ms = NBoard::TMoveSerializer(FirstMoves, n, Boards[0]);
             continue;
 		} else if (s == "print") {
 			Boards[0].Print();

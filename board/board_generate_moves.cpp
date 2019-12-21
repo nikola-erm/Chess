@@ -4,7 +4,9 @@
 
 #include <iostream>
 
-TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
+using namespace NBoard;
+
+TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 	auto c = Turn & 1;
 
 	const auto mtMyKing = (c ? MT_BKING : MT_WKING);
@@ -40,12 +42,40 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 	const auto& pawnStep = (c ? PawnBlackStep : PawnWhiteStep);
 	const auto& pawnStrike = (c ? PawnBlackStrike : PawnWhiteStrike);
 
-	auto myKingTmp = myKing;
-	auto myKnightTmp = myKnight;
-	auto myRookTmp = myRook;
-	auto myBishopTmp = myBishop;
-	auto myQueenTmp = myQueen;
-	auto myPawnTmp = myPawn;
+    auto myKingTmp = opKing;
+	auto myKnightTmp = opKnight;
+	auto myRookTmp = opRook;
+	auto myBishopTmp = opBishop;
+	auto myQueenTmp = opQueen;
+	auto myPawnTmp = opPawn;
+
+    for (int posDelta = 0; posDelta < 64; posDelta += 8) {
+		for (auto it = Bits[myKingTmp & 255]; *it != -1; it++)
+			OpMt[*it + posDelta] = mtOpKing;
+		myKingTmp >>= 8;
+		for (auto it = Bits[myKnightTmp & 255]; *it != -1; it++)
+            OpMt[*it + posDelta] = mtOpKnight;
+		myKnightTmp >>= 8;
+		for (auto it = Bits[myRookTmp & 255]; *it != -1; it++)
+            OpMt[*it + posDelta] = mtOpRook;
+		myRookTmp >>= 8;
+		for (auto it = Bits[myBishopTmp & 255]; *it != -1; it++)
+            OpMt[*it + posDelta] = mtOpBishop;
+		myBishopTmp >>= 8;
+		for (auto it = Bits[myQueenTmp & 255]; *it != -1; it++)
+            OpMt[*it + posDelta] = mtOpQueen;
+		myQueenTmp >>= 8;
+		for (auto it = Bits[myPawnTmp & 255]; *it != -1; it++)
+            OpMt[*it + posDelta] = mtOpPawn;				
+		myPawnTmp >>= 8;
+	}
+
+	myKingTmp = myKing;
+	myKnightTmp = myKnight;
+	myRookTmp = myRook;
+	myBishopTmp = myBishop;
+	myQueenTmp = myQueen;
+	myPawnTmp = myPawn;
 	
 	TMask shortCastlingMask = 1;
 	TMask longCastlingMask = 2;
@@ -70,7 +100,7 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 	}
 	
 	for (int posDelta = 0; posDelta < 64; posDelta += 8) {
-		//King moves
+        //King moves
 		for (auto it = Bits[myKingTmp & 255]; *it != -1; it++) {
 			int pos = posDelta + *it;
 			auto castlingDiff = (shortCastlingMask | longCastlingMask) & Masks[MT_HASH];
@@ -81,18 +111,7 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 				moves->Add(mtMyKing, pos, *m);
 				auto cap = opColor & toMask;
 				if (cap) {
-					if (cap & opKnight)
-						moves->Add(mtOpKnight, *m);
-					else if (cap & opRook)
-						moves->Add(mtOpRook, *m);
-					else if (cap & opBishop)
-						moves->Add(mtOpBishop, *m);
-					else if (cap & opQueen)
-						moves->Add(mtOpQueen, *m);
-					else if (cap & opPawn)
-						moves->Add(mtOpPawn, *m);
-					else
-						assert(false);	
+					moves->Add(OpMt[*m], *m);
 				}
 				if (castlingDiff)
 					moves->AddHash(castlingDiff);
@@ -136,22 +155,7 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 				moves->Add(mtMyKnight, pos, *m);
 				auto cap = opColor & toMask;
 				if (cap) {
-					if (cap & opPawn)
-						moves->Add(mtOpPawn, *m);
-					else if (cap & opKnight)
-						moves->Add(mtOpKnight, *m);
-					else if (cap & opBishop)
-						moves->Add(mtOpBishop, *m);
-					else if (cap & opRook)
-						moves->Add(mtOpRook, *m);
-					else if (cap & opQueen)
-						moves->Add(mtOpQueen, *m);
-					else {
-						Print();
-						PRINT_MASK_IMPL(KnightStepAll[Num(4, 6)])
-						PRINT_MASK_IMPL(myKnight)
-						assert(false);
-					}
+                    moves->Add(OpMt[*m], *m);
 				}
 				moves++;
 			}
@@ -175,20 +179,7 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 					moves->AddHash(castlingDiff);
 				auto cap = opColor & toMask;
 				if (cap) {
-					if (cap & opPawn)
-						moves->Add(mtOpPawn, *m);
-					else if (cap & opKnight)
-						moves->Add(mtOpKnight, *m);
-					else if (cap & opBishop)
-						moves->Add(mtOpBishop, *m);
-					else if (cap & opRook)
-						moves->Add(mtOpRook, *m);
-					else if (cap & opQueen)
-						moves->Add(mtOpQueen, *m);
-					else {
-						//Print();
-						assert(false);
-					}
+                    moves->Add(OpMt[*m], *m);
 					moves++;
 					break;
 				} else {
@@ -208,25 +199,7 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 				moves->Add(mtMyBishop, pos, *m);
 				auto cap = opColor & toMask;
 				if (cap) {
-					if (cap & opPawn)
-						moves->Add(mtOpPawn, *m);
-					else if (cap & opKnight)
-						moves->Add(mtOpKnight, *m);
-					else if (cap & opBishop)
-						moves->Add(mtOpBishop, *m);
-					else if (cap & opRook)
-						moves->Add(mtOpRook, *m);
-					else if (cap & opQueen)
-						moves->Add(mtOpQueen, *m);
-					else {
-						for (int t = 0; t < Turn; t++) {
-							cerr << StoryNames[t] << endl;
-							Story[t].Print();
-						}
-						Print();
-						cerr << "pos = " << pos << endl;
-						assert(false);
-					}
+					moves->Add(OpMt[*m], *m);
 					moves++;
 					break;
 				} else {
@@ -246,19 +219,7 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 				moves->Add(mtMyQueen, pos, *m);
 				auto cap = opColor & toMask;
 				if (cap) {
-					if (cap & opPawn)
-						moves->Add(mtOpPawn, *m);
-					else if (cap & opKnight)
-						moves->Add(mtOpKnight, *m);
-					else if (cap & opBishop)
-						moves->Add(mtOpBishop, *m);
-					else if (cap & opRook)
-						moves->Add(mtOpRook, *m);
-					else if (cap & opQueen)
-						moves->Add(mtOpQueen, *m);
-					else {
-						assert(false);
-					}
+					moves->Add(OpMt[*m], *m);
 					moves++;
 					break;
 				} else {
@@ -272,22 +233,7 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 				moves->Add(mtMyQueen, pos, *m);
 				auto cap = opColor & toMask;
 				if (cap) {
-					if (cap & opPawn)
-						moves->Add(mtOpPawn, *m);
-					else if (cap & opKnight)
-						moves->Add(mtOpKnight, *m);
-					else if (cap & opBishop)
-						moves->Add(mtOpBishop, *m);
-					else if (cap & opRook)
-						moves->Add(mtOpRook, *m);
-					else if (cap & opQueen)
-						moves->Add(mtOpQueen, *m);
-					else {
-						cerr << "from: " << FieldStr[pos] << endl;
-						cerr << "to  : " << FieldStr[GetBitPos(cap)] << endl;
-						cerr << "opKing pos: " << FieldStr[GetBitPos(opKing)] << endl;
-						assert(false);
-					}
+					moves->Add(OpMt[*m], *m);
 					moves++;
 					break;
 				} else {
@@ -343,20 +289,7 @@ TBoard::TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 					moves->Reset();
 					moves->Add(mtMyPawn, posFrom, *m);
 					auto cap = opColor & maskTo;
-					if (cap & opPawn)
-						moves->Add(mtOpPawn, *m);
-					else if (cap & opKnight)
-						moves->Add(mtOpKnight, *m);
-					else if (cap & opBishop)
-						moves->Add(mtOpBishop, *m);
-					else if (cap & opRook)
-						moves->Add(mtOpRook, *m);
-					else if (cap & opQueen)
-						moves->Add(mtOpQueen, *m);
-					else {
-						Print();
-						assert(false);
-					}
+					moves->Add(OpMt[*m], *m);
 					if (maskTo & PawnTransformLines) {
 						auto mt2 = moves->MaskTypes[1];	
 						moves->Reset();

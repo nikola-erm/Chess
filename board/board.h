@@ -1,5 +1,7 @@
 #pragma once
 
+#include"common.h"
+
 #include <config.h>
 
 #include <vector>
@@ -10,47 +12,38 @@ using namespace std;
 
 using TMask = unsigned long long;
 
+class THeuristics;
+
+namespace NBoard {
+
+class TBoardMovesIterable;
+
+enum EGameStatus {
+	GS_PLAY,
+	GS_LOSE,
+	GS_DRAW
+};
+
+struct TMove {
+	EMaskType MaskTypes[5];
+	TMask Masks[5];
+	TMask HashMask;
+	int Count;
+
+	void Reset();
+	void Add(EMaskType maskType, int pos);
+	void Add(EMaskType maskType, int pos1, int pos2);
+	void AddHash(TMask mask);
+	bool IsCapturing() const;
+    void Print() const;
+};
+
 class TBoard {
 public:
-	friend class THeuristics;
+	friend class ::THeuristics;
 	friend class TMoveSerializer;
-
-	enum EGameStatus {
-		GS_PLAY,
-		GS_LOSE,
-		GS_DRAW
-	};
-
-	enum EMaskType {
-		MT_NONE,
-		MT_HASH,
-		MT_WKING,
-		MT_BKING,
-		MT_WKNIGHT,
-		MT_BKNIGHT,
-		MT_WROOK,
-		MT_BROOK,
-		MT_WBISHOP,
-		MT_BBISHOP,
-		MT_WQUEEN,
-		MT_BQUEEN,
-		MT_WPAWN,
-		MT_BPAWN
-	};
-
-	struct TMove {
-		EMaskType MaskTypes[5];
-		TMask Masks[5];
-		TMask HashMask;
-		int Count;
-
-		void Reset();
-		void Add(EMaskType maskType, int pos);
-		void Add(EMaskType maskType, int pos1, int pos2);
-		void AddHash(TMask mask);
-		bool IsCapturing() const;
-		void Print() const;
-	};
+    friend class TMove;
+    friend class TBoardMovesIterator;
 
 public:
 	static void StaticInit();
@@ -64,6 +57,7 @@ public:
 	void Undo();
 
 	TMove* GenerateMovesUnchecked(TMove* moves);
+    TBoardMovesIterable IterableMovesUnchecked(TMove* moves);
 	
 	bool IsOpKingUnderAttack() const;
 	bool IsMyKingUnderAttack() const;
@@ -82,6 +76,7 @@ private:
 	TMask Masks[14];
 	TMove Story[10000];
 	string StoryNames[10000];
+    EMaskType OpMt[64];
 	unordered_map<TMask, int> WasCount;
 
 	bool IsUnderLinearAttack(
@@ -159,15 +154,17 @@ private:
 class TBoardBatch {
 public:
 	TBoard& operator[](int i);
-	TBoard::TMove* GenerateMovesUnchecked(TBoard::TMove* moves);
+	TMove* GenerateMovesUnchecked(TMove* moves);
 	TBoardBatch();
 	TBoardBatch(const string& fen);
-	void MakeMove(const TBoard::TMove& m);
-	void MakeMove(const TBoard::TMove& m, const string& s);
-	void UndoMove(const TBoard::TMove& m);
+	void MakeMove(const TMove& m);
+	void MakeMove(const TMove& m, const string& s);
+	void UndoMove(const TMove& m);
 	void Undo();
 	void PrintStory() const;
 
 private:
 	vector<TBoard> Boards;
 };
+
+} // NBoard

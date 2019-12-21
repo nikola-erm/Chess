@@ -10,16 +10,16 @@
 using namespace std;
 
 int main() {
-    TBoard::StaticInit();
+    NBoard::TBoard::StaticInit();
 	//RunGenetic();
 	//return 0;
 	cerr << "Static init complete" << endl;
-	TBoardBatch boards;
+	NBoard::TBoardBatch boards;
 	cerr << "board batch initialized" << endl;
 	TEngine engine(boards);
 	cerr << "init complete" << endl;
 	while (true) {
-        engine.MakeComputerMoveBetter(7e9);
+        engine.MakeComputerMoveBetter(3e9);
         engine.MakeUserMove();
 	}
 }

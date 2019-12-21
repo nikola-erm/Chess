@@ -11,6 +11,8 @@
 		exit(0); \
 	}
 
+using namespace NBoard;
+
 TBoard::TBoard() {
 	InitStandart();
 }
@@ -141,28 +143,28 @@ bool TBoard::IsUnderOpAttack(int pos) const {
 		return IsWhiteUnderAttack(pos);
 }
 
-void TBoard::TMove::Reset() {
+void TMove::Reset() {
 	HashMask = 0;
 	Count = 0;
 }
 
-void TBoard::TMove::Add(EMaskType maskType, int pos) {
+void TMove::Add(EMaskType maskType, int pos) {
 	MaskTypes[Count] = maskType;
 	Masks[Count++] = GetMask(pos);
-	HashMask ^= FigurePrints[maskType][pos];
+	HashMask ^= TBoard::FigurePrints[maskType][pos];
 }
 
-void TBoard::TMove::Add(EMaskType maskType, int pos1, int pos2) { 
+void TMove::Add(EMaskType maskType, int pos1, int pos2) { 
 	MaskTypes[Count] = maskType;
 	Masks[Count++] = (GetMask(pos1) | GetMask(pos2));
-	HashMask ^= FigurePrints[maskType][pos1] ^ FigurePrints[maskType][pos2];
+	HashMask ^= TBoard::FigurePrints[maskType][pos1] ^ TBoard::FigurePrints[maskType][pos2];
 }
 
-void TBoard::TMove::AddHash(TMask mask) {
+void TMove::AddHash(TMask mask) {
 	HashMask ^= mask;
 }
 
-void TBoard::TMove::Print() const {
+void TMove::Print() const {
 	cerr << "move info:" << endl;
 	for (int i = 0; i < Count; i++) {
 		cerr << MaskTypes[i] << " " << Masks[i] << endl;
@@ -173,7 +175,7 @@ int TBoard::CurrentPositionWasCount() const {
 	return WasCount.at(Masks[MT_HASH]);
 }
 
-TBoard::EGameStatus TBoard::UpdateStatus() {
+NBoard::EGameStatus TBoard::UpdateStatus() {
     if (CurrentPositionWasCount() >= 3)
         return Status = GS_DRAW;
     static TMove moves[100];
@@ -240,7 +242,7 @@ void TBoard::PrintStory() const {
 	}
 }
 
-bool TBoard::TMove::IsCapturing() const {
+bool TMove::IsCapturing() const {
 	bool hw = false, hb = false;
 	for (int i = 0; i < Count; i++) {
 		switch (MaskTypes[i]) {

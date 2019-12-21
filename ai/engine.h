@@ -17,11 +17,12 @@ public:
         TDfsResult GetNormalized() const;
     };
 
-	TEngine(TBoardBatch& boards);
+	TEngine(NBoard::TBoardBatch& boards);
 
 	TDfsResult Dfs(int depth, int& cnt, int a = -INF, int b = INF);
-	TDfsResult Dfs(int ti, TBoard::TMove* moves, TDfsLimits lim, int a, int b, int& cnt, bool opTurn);
-    int DfsFixed(int ti, TBoard::TMove* moves, int depth, long long& cnt, int a);
+	TDfsResult Dfs(int ti, NBoard::TMove* moves, TDfsLimits lim, int a, int b, int& cnt, bool opTurn);
+    int DfsFixed(int ti, NBoard::TMove* moves, int depth, long long& cnt, int a);
+    int DfsIterable(int ti, NBoard::TMove* moves, int depth, long long& cnt, int a);
 	void MakeUserMove();
 	void MakeComputerMove(int posCntLim, vector<int> useFactors = THeuristics::DefaultUseFactors);
     void MakeComputerMoveBetter(long long posCntLim, vector<int> useFactors = THeuristics::DefaultUseFactors);
@@ -29,10 +30,10 @@ public:
 	void MakeSpecialAction();
 
 private:
-	TBoardBatch& Boards;
+	NBoard::TBoardBatch& Boards;
 
-	TBoard::TMove Moves[THREAD_COUNT][1000];
-	TBoard::TMove FirstMoves[1000];
+	NBoard::TMove Moves[THREAD_COUNT][1000];
+	NBoard::TMove FirstMoves[1000];
 	vector<THeuristics> Heuristics;
 
 };

@@ -2,6 +2,9 @@
 
 #include<util.h>
 
+
+using namespace NBoard;
+
 void TBoard::InitStandart() {
 	Turn = 0;
 	Masks[MT_WKING]   = GetMask(4, 0);

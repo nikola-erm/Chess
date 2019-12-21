@@ -3,13 +3,14 @@
 #include <util.h>
 
 using namespace std;
+using namespace NBoard;
 
 const string& TMoveSerializer::GetMoveName(int i) const {
 	const auto& ret = Names.at(i).at(CanonIndecies.at(i));
 	return ret;
 }
 
-TMoveSerializer::TMoveSerializer(const TBoard::TMove* moves, int n, TBoard& board) {
+TMoveSerializer::TMoveSerializer(const TMove* moves, int n, TBoard& board) {
 	Names.resize(n);
 	CanonIndecies.resize(n);
 	IsValid.resize(n);
@@ -39,23 +40,23 @@ TMoveSerializer::TMoveSerializer(const TBoard::TMove* moves, int n, TBoard& boar
 	}
 }
 
-static void AddTransformFigure(vector<string>& res, TBoard::EMaskType maskType) {
+static void AddTransformFigure(vector<string>& res, EMaskType maskType) {
 	char fig = '?';
 	switch (maskType) {
-	case TBoard::MT_WQUEEN:
-	case TBoard::MT_BQUEEN:
+	case MT_WQUEEN:
+	case MT_BQUEEN:
 		fig = 'Q';
 		break;
-	case TBoard::MT_WROOK:
-	case TBoard::MT_BROOK:
+	case MT_WROOK:
+	case MT_BROOK:
 		fig = 'R';
 		break;
-	case TBoard::MT_WBISHOP:
-	case TBoard::MT_BBISHOP:
+	case MT_WBISHOP:
+	case MT_BBISHOP:
 		fig = 'B';
 		break;
-	case TBoard::MT_WKNIGHT:
-	case TBoard::MT_BKNIGHT:
+	case MT_WKNIGHT:
+	case MT_BKNIGHT:
 		fig = 'N';
 		break;					
 	}
@@ -64,7 +65,7 @@ static void AddTransformFigure(vector<string>& res, TBoard::EMaskType maskType) 
 	}
 }
 
-vector<string> TMoveSerializer::GenerateNames(const TBoard& board, const TBoard::TMove& m) {
+vector<string> TMoveSerializer::GenerateNames(const TBoard& board, const TMove& m) {
 	const auto& fstr = TBoard::FieldStr;
 	TMask maskFrom = (m.Masks[0] & board.Masks[m.MaskTypes[0]]);
 	TMask maskTo = maskFrom ^ m.Masks[0];
@@ -74,8 +75,8 @@ vector<string> TMoveSerializer::GenerateNames(const TBoard& board, const TBoard:
 	int to = GetBitPos(maskTo);
 	string fig;
 	switch (m.MaskTypes[0]) {
-	case TBoard::MT_WKING:
-	case TBoard::MT_BKING:
+	case MT_WKING:
+	case MT_BKING:
 		if (fstr[from][0] == 'e' && fstr[to][0] == 'g')
 			return { "0-0" };
 		else if (fstr[from][0] == 'e' && fstr[to][0] == 'c')
@@ -83,24 +84,24 @@ vector<string> TMoveSerializer::GenerateNames(const TBoard& board, const TBoard:
 		else
 			return { "K" + fstr[to] };
 		break;
-	case TBoard::MT_WROOK:
-	case TBoard::MT_BROOK:
+	case MT_WROOK:
+	case MT_BROOK:
 		fig = "R";
 		break;
-	case TBoard::MT_WQUEEN:
-	case TBoard::MT_BQUEEN:
+	case MT_WQUEEN:
+	case MT_BQUEEN:
 		fig = "Q";
 		break;
-	case TBoard::MT_WBISHOP:
-	case TBoard::MT_BBISHOP:
+	case MT_WBISHOP:
+	case MT_BBISHOP:
 		fig = "B";
 		break;
-	case TBoard::MT_WKNIGHT:
-	case TBoard::MT_BKNIGHT:
+	case MT_WKNIGHT:
+	case MT_BKNIGHT:
 		fig = "N";
 		break;
-	case TBoard::MT_WPAWN:
-	case TBoard::MT_BPAWN:
+	case MT_WPAWN:
+	case MT_BPAWN:
 		if (fstr[from][0] != fstr[to][0]) {
 		 	vector<string> ret = { fstr[from].substr(0, 1) + fstr[to], fstr[from].substr(0, 1) + fstr[to].substr(0, 1), fstr[to] };
 		 	if (!(maskTo & m.Masks[0]))
@@ -117,7 +118,7 @@ vector<string> TMoveSerializer::GenerateNames(const TBoard& board, const TBoard:
 		res.push_back(fig + fstr[from][0] + cp + fstr[to]);
 		res.push_back(fig + fstr[from] + cp + fstr[to]);
 	}
-	if (m.MaskTypes[0] == TBoard::MT_WPAWN || m.MaskTypes[0] == TBoard::MT_BPAWN) {
+	if (m.MaskTypes[0] == MT_WPAWN || m.MaskTypes[0] == MT_BPAWN) {
 		if (!(maskTo & m.Masks[0]))
 		 	AddTransformFigure(res, m.MaskTypes[1]);
 	}

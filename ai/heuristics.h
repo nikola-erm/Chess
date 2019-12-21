@@ -12,7 +12,7 @@ public:
 		GS_ENDING
 	};
 
-	THeuristics(const TBoard& board);	
+	THeuristics(const NBoard::TBoard& board);	
 	void UpdateGameStage();
 	int GetScore();
 
@@ -37,7 +37,7 @@ public:
 	static const vector<int> DefaultUseFactors;
 
 private:
-	const TBoard& Board;
+	const NBoard::TBoard& Board;
 	TMask MaskByColor[2];
 	EGameStage GameStage;
 

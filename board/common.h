@@ -1,0 +1,22 @@
+﻿#pragma once
+
+namespace NBoard {
+
+enum EMaskType {
+	MT_NONE,
+	MT_HASH,
+	MT_WKING,
+	MT_BKING,
+	MT_WKNIGHT,
+	MT_BKNIGHT,
+	MT_WROOK,
+	MT_BROOK,
+	MT_WBISHOP,
+	MT_BBISHOP,
+	MT_WQUEEN,
+	MT_BQUEEN,
+	MT_WPAWN,
+	MT_BPAWN
+};
+
+}

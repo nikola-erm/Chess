@@ -10,6 +10,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace NBoard;
 
 vector<vector<int>> PlayTournament(const vector<vector<int>>& members) {
 	vector<double> scores(members.size(), 0.0);
@@ -36,7 +37,7 @@ vector<vector<int>> PlayTournament(const vector<vector<int>>& members) {
     		TEngine engine(boards);
     		int turn = 1;
     		bool isWhite = true;
-    		while (boards[0].UpdateStatus() == TBoard::GS_PLAY) {
+    		while (boards[0].UpdateStatus() == NBoard::GS_PLAY) {
     			//engine.MakeComputerMove(5e4, members[isWhite ? wi : bi]);
                 engine.MakeComputerMoveBetter(2e7, members[isWhite ? wi : bi]);
                 isWhite = !isWhite;
@@ -47,7 +48,7 @@ vector<vector<int>> PlayTournament(const vector<vector<int>>& members) {
     			}   				
     		}
             cerr << "\r" << info << "   ";
-    		if (turn == 150 || boards[0].Status != TBoard::GS_LOSE) {
+    		if (turn == 150 || boards[0].Status != NBoard::GS_LOSE) {
     			info += '.';
                 scores[wi] += 0.5;
     			scores[bi] += 0.5;
