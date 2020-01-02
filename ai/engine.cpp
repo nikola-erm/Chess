@@ -210,9 +210,11 @@ void TEngine::MakeComputerMoveBetter(long long posCntLim, vector<int> useFactors
     }
     int itrCnt = 0;
     while (iobs.size() > 1) {
+        if (a > INF)
+            break;
         itrCnt++; 
         bool breakImm = ((step == -1 || step == 1) && !speedUp);            
-        int depth = 11;
+        int depth = 15;
         while (depth > 3) {
             double tec = 0;
             for (int i : iobs)

@@ -19,7 +19,7 @@ inline unsigned long long Now() {
 	).count();
 }
 
-const int INF = 1e3;
+const int INF = 1023;
 
 #define BCNT(x) __builtin_popcountll(x)
 

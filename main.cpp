@@ -19,7 +19,9 @@ int main() {
 	TEngine engine(boards);
 	cerr << "init complete" << endl;
 	while (true) {
-        engine.MakeComputerMoveBetter(3e9);
-        engine.MakeUserMove();
+        engine.MakeComputerMoveBetter(1e9, { 11, 6, 0, 1, 0, 2, 3, 0, 4, 1, 1 });
+        cin.get();
+        engine.MakeComputerMoveBetter(1e9, {  9, 4, 1, 0, 1, 0, 1, 1, 2, 1, 1 });
+        cin.get();
 	}
 }
