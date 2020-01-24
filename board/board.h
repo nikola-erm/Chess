@@ -13,6 +13,7 @@ using namespace std;
 using TMask = unsigned long long;
 
 class THeuristics;
+class TEngine;
 
 namespace NBoard {
 
@@ -44,6 +45,7 @@ public:
 	friend class TMoveSerializer;
     friend class TMove;
     friend class TBoardMovesIterator;
+    friend class ::TEngine;
 
 public:
 	static void StaticInit();
@@ -57,6 +59,7 @@ public:
 	void Undo();
 
 	TMove* GenerateMovesUnchecked(TMove* moves);
+    TMove* GenerateMoves(TMove* moves);
     TBoardMovesIterable IterableMovesUnchecked(TMove* moves);
 	
 	bool IsOpKingUnderAttack() const;

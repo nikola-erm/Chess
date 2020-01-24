@@ -17,11 +17,16 @@ int main() {
 	NBoard::TBoardBatch boards;
 	cerr << "board batch initialized" << endl;
 	TEngine engine(boards);
-	cerr << "init complete" << endl;
+    cerr << "init complete" << endl;
 	while (true) {
-        engine.MakeComputerMoveBetter(1e9, { 11, 6, 0, 1, 0, 2, 3, 0, 4, 1, 1 });
-        cin.get();
+      //engine.MakeComputerMoveBetter(1e9, { 11, 6, 0, 1, 0, 2, 3, 0, 4, 1, 1 });
+        //engine.MakeComputerMoveBetter(1e9, { 11, 6, 0, 1, 0, 2, 3, 0, 4, 1, 1 });
+        //cin.get();
         engine.MakeComputerMoveBetter(1e9, {  9, 4, 1, 0, 1, 0, 1, 1, 2, 1, 1 });
+        cin.get();
+        //engine.MakeUserMove();
+		engine.MakeMonteCarloMove({ 9, 4, 1, 0, 1, 0, 1, 1, 2, 1, 1 });
+        //engine.MakeComputerMoveTwoStage({ 9, 4, 1, 0, 1, 0, 1, 1, 2, 1, 1 });
         cin.get();
 	}
 }

@@ -6,6 +6,20 @@
 
 using namespace NBoard;
 
+TMove* TBoard::GenerateMoves(TMove* mr) {
+    auto mEnd = GenerateMovesUnchecked(mr);
+    auto mw = mr;
+    for (; mr != mEnd; mr++) {
+        MakeMove(*mr);
+        if (!IsOpKingUnderAttack()) {
+            *mw = *mr;
+            mw++;
+        }
+        UndoMove(*mr);
+    }
+    return mw;    
+}
+
 TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 	auto c = Turn & 1;
 

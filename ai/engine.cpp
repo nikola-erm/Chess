@@ -353,6 +353,361 @@ void TEngine::MakeUserMove() {
 	Boards.MakeMove(FirstMoves[i], ms.GetMoveName(i));
 }
 
+int TEngine::DfsFixedScore(int depth, int ti) {
+	int l = 0, r = 0;
+    long long cnt;
+    if (DfsFixed(ti, Moves[ti], depth, cnt, 0) >= 0) {
+        r = 1;
+        while (r < INF && DfsFixed(ti, Moves[ti], depth, cnt, r) >= r)
+            r = r * 2 + 1;
+    } else {
+        l = -1;
+        while (l >= -INF && DfsFixed(ti, Moves[ti], depth, cnt, l) < l)
+            l = l * 2 - 1;
+    }
+	while (l < r) {
+		int m = l + (r - l) / 2;
+		if (DfsFixed(ti, Moves[ti], depth, cnt, m+1) >= m+1)
+			l = m+1;
+		else
+			r = m;
+	}
+	return l;
+}
+
+int TEngine::DfsFixedScore(int depth, int ti, int l, int r) {
+    l--;
+    r++;
+    long long cnt;
+	while (l < r) {
+		int m = l + (r - l) / 2;
+		if (DfsFixed(ti, Moves[ti], depth, cnt, m+1) >= m+1)
+			l = m+1;
+		else
+			r = m;
+	}
+	return l;
+}
+
+void TEngine::BuildGameTreeStructure(TGameTreeNode& v, int depth) {
+    v.MinScore = -INF;
+    v.MaxScore = INF;
+    if (depth == 0)
+        return;
+    static NBoard::TMove moves[100];
+    int n = Boards[0].GenerateMoves(moves) - moves;
+    if (n == 0 || Boards[0].CurrentPositionWasCount() == 3)
+        return;
+    v.Children.resize(n);
+    NBoard::TMoveSerializer ms(moves, n, Boards[0]);
+    for (int i = 0; i < n; i++) {
+        v.Children[i].Move = moves[i];
+        v.Children[i].MoveName = ms.GetMoveName(i);
+    }
+    for (int i = 0; i < n; i++) {
+        Boards[0].MakeMove(v.Children[i].Move);
+        BuildGameTreeStructure(v.Children[i], depth-1);
+        Boards[0].UndoMove(v.Children[i].Move);
+    }
+}
+
+void TEngine::BuildLeafsForUpdateList(TGameTreeNode& v, vector<vector<TGameTreeNode*>>& result, vector<TGameTreeNode*>& leafStack, int a) {
+    leafStack.push_back(&v);
+    if (v.MinScore < a  && a <= v.MaxScore) {
+        if (v.Children.empty()) {
+            result.push_back(leafStack);
+        } else {
+            for (int i = 0; i < (int) v.Children.size(); i++) {
+                Boards[0].MakeMove(v.Children[i].Move);
+                BuildLeafsForUpdateList(v.Children[i], result, leafStack, -a + 1);
+                Boards[0].UndoMove(v.Children[i].Move);
+            }
+        }
+    }
+    leafStack.pop_back();
+}
+
+bool TEngine::NeedEstimate(const vector<TGameTreeNode*>& seq, int a) {
+    for (const TGameTreeNode* x : seq) {
+        if (x->MinScore >= a || x->MaxScore < a)
+            return false;
+        a = -a + 1;
+    }
+    return true;
+}
+
+template<typename T>
+static void RandomShuffle(vector<T>& seq) {
+    int n = seq.size();
+    for (int i = 0; i < n; i++) {
+        int j = Rand(n);
+        swap(seq[i], seq[j]);
+    }
+}
+
+void TEngine::EstimateLeafs(vector<vector<TGameTreeNode*>>& leafs, int depth, int a) {
+    //RandomShuffle(leafs);
+    int ii = 0;
+    mutex iMutex;
+    mutex tMutex;
+    vector<thread> threads;
+    for (int ti = 0; ti < THREAD_COUNT; ti++)
+        threads.push_back(thread([&](int ti, int a) {
+            long long cnt;
+            while (true) {
+                int i;  
+                {
+                    lock_guard<mutex> guard(iMutex);
+                    i = ii;
+                    ii++;
+                }
+                if (i >= (int) leafs.size())
+                    break;
+                if (ti == 0)
+                    LOG_AI("\rEstimating leafs " << (i * 100 / leafs.size()) << " %   ")
+                auto& seq = leafs[i];
+
+                {
+                    lock_guard<mutex> guard(tMutex);
+                    if (!NeedEstimate(seq, a))
+                        continue;
+                }
+
+                for (int j = 1; j < (int) seq.size(); j++) {
+                    Boards[ti].MakeMove(seq[j]->Move);
+                    a = -a + 1;
+                }
+                int score = DfsFixed(ti, Moves[ti], depth, cnt, a);
+                if (score >= a)
+                    seq.back()->MinScore = a;
+                else
+                    seq.back()->MaxScore = a-1;
+                {
+                    lock_guard<mutex> guard(tMutex);
+                    for (int j = seq.size() - 1; j > 0; j--) {
+                        Boards[ti].UndoMove(seq[j]->Move);
+                        if (seq[j-1]->MinScore < a || seq[j-1]->MaxScore >= a) {
+                            bool hasStrong = false;   
+                            bool allWeak = true;
+                            for (int ci = 0; ci < (int)seq[j-1]->Children.size(); ci++) {
+                                if (seq[j-1]->Children[ci].MaxScore < a) {
+                                    hasStrong = true;
+                                    break;
+                                }
+                                if (seq[j-1]->Children[ci].MinScore < a) {
+                                    allWeak = false;
+                                }
+                            }
+                            a = -a + 1;
+                            if (hasStrong)
+                                seq[j-1]->MinScore = a;
+                            else if (allWeak)
+                                seq[j-1]->MaxScore = a-1;
+                        } else {
+                            a = -a + 1;
+                        }
+                    }
+                }
+            }
+        }, ti, a));
+
+    for (auto& t : threads)
+        t.join();
+
+    LOG_AI("\rEstimating leafs 100 %   " << endl)
+} 
+
+TEngine::TGameTreeNode TEngine::BuildGameTree() {
+    LOG_AI("Estimating tree size..." << endl)
+	auto cntByDepth = EstimateTreeSize(Boards[0], 1000);
+	int primaryDepth = 4;
+	while (primaryDepth > 3 && cntByDepth[primaryDepth] > 1e5)
+		primaryDepth--;
+	int secondaryDepth = 8;
+	while (secondaryDepth > 2 && cntByDepth[secondaryDepth + primaryDepth] > 3e10)
+		secondaryDepth--;
+	TGameTreeNode root;
+    LOG_AI("Building game tree structure..." << endl)
+    BuildGameTreeStructure(root, primaryDepth);
+    for (int version = 0; version < 3; version++) {
+        if (version > 0) {
+            int l = -1, r = 2 * INF;
+            double cf = cntByDepth[primaryDepth + secondaryDepth + 1] / cntByDepth[primaryDepth];
+            while (l < r) {
+                int m = l + (r - l + 1) / 2;
+                if (cf * CalcReEstimateLeafs(root, root.MinScore - m, root.MaxScore + m) < 3e10)
+                    l = m;
+                else
+                    r = m-1;
+            }
+            LOG_AI("radius = " << r << endl)
+            if (r < 0)
+                break;
+            int minScore = root.MinScore - r;
+            int maxScore = root.MaxScore + r;
+            if (IsTrivial(root, minScore, maxScore)) {
+                LOG_AI("one branch => break" << endl)
+                break;
+            }
+            RelaxScores(root, minScore, maxScore);
+            secondaryDepth++;
+        }
+        LOG_AI("Root estimate = [" << root.MinScore << ", " << root.MaxScore << "]" << endl)
+        while (root.MinScore < root.MaxScore) {
+            int a = root.MinScore + (root.MaxScore - root.MinScore + 1) / 2;
+            LOG_AI("a = " << a << "; depth = " << primaryDepth << " + " << secondaryDepth << endl)
+            vector<TGameTreeNode*> leafStack;
+            vector<vector<TGameTreeNode*>> leafs;
+            BuildLeafsForUpdateList(root, leafs, leafStack, a);
+            LOG_AI("Leafs count = " << leafs.size() << endl)
+            EstimateLeafs(leafs, secondaryDepth, a);
+            LOG_AI("Root estimate = [" << root.MinScore << ", " << root.MaxScore << "]" << endl)
+        }
+    }
+    return root;
+}
+
+void TEngine::MakeMonteCarloMove(vector<int> useFactors) {
+    Heuristics[0].UseFactors = useFactors;
+    NBoard::TMove bestMove;
+    string bestMoveName;
+    if (MonteCarlo.MakeMove(Boards[0], Heuristics[0], bestMove, bestMoveName)) {
+        PRINT("Computer move: " << bestMoveName << endl)
+        Boards.MakeMove(bestMove);
+    } else {
+        PRINT("Seems that game is over" << endl)
+    }
+}
+
+void TEngine::MakeComputerMoveTwoStage(vector<int> useFactors) {
+    for (auto& h : Heuristics)
+        h.UseFactors = useFactors;
+    
+    auto root = BuildGameTree();
+    
+    if (root.Children.empty()) {
+        PRINT("Seems that game is over" << endl)
+        return;
+    }
+    int best;
+    vector<int> iobs;
+    for (int i = 0; i < (int) root.Children.size(); i++) {
+        if (iobs.empty() || root.Children[i].MaxScore < best) {
+            iobs.clear();
+            best = root.Children[i].MaxScore;
+        } 
+        if (root.Children[i].MaxScore == best) {
+            iobs.push_back(i);
+        }
+    }
+    int i = iobs[Rand(iobs.size())];
+    LOG_AI("Explanation:")
+    Explain(root);
+    PRINT("Computer move: " << root.Children[i].MoveName << endl)
+    Boards.MakeMove(root.Children[i].Move, root.Children[i].MoveName);
+}
+
+void TEngine::Explain(const TGameTreeNode& v, int d) {
+    if (v.Children.empty()) {
+        LOG_AI("\n") 
+        return;
+    }
+    string tab(d, '\t');
+    int best = v.Children[0].MaxScore;
+    for (const auto& c : v.Children)
+        best = min(best, c.MaxScore);
+    LOG_AI("[\n")
+    for (const auto& c : v.Children) {
+        if (c.MaxScore != best)
+            continue;
+        LOG_AI(tab << "\t" << c.MoveName)
+        Explain(c, d+1);    
+    }
+
+    LOG_AI(tab << "]\n")
+}
+
+void TEngine::TGameTreeNode::Print() const {
+    cerr << MoveName << " [" << MinScore << ", " << MaxScore << "]";
+    if (Children.empty())
+        return;
+    cerr << " { ";
+    for (const auto& v : Children) {
+        v.Print();
+        cerr << " ";
+    }
+    cerr << "}";
+}
+
+bool TEngine::IsTrivial(const TGameTreeNode& v, int minScore, int maxScore) {
+    bool has = false;
+    swap(minScore, maxScore);
+    minScore *= -1;
+    maxScore *= -1;
+    for (const auto& c : v.Children) {
+        if (maxScore < c.MinScore || c.MaxScore < minScore)
+            continue;
+        if (has)
+            return false;
+        has = true;
+    }
+    return true;
+}
+
+void TEngine::RelaxScores(TGameTreeNode& v, int minScore, int maxScore) {
+    if (maxScore < v.MinScore || v.MaxScore < minScore)
+        return;
+    v.MinScore = min(v.MinScore, minScore);
+    v.MaxScore = max(v.MaxScore, maxScore);
+    for (auto& c : v.Children)
+        RelaxScores(c, -maxScore, -minScore);
+}
+
+int TEngine::CalcReEstimateLeafs(const TGameTreeNode& v, int minScore, int maxScore) {
+    if (v.MaxScore < minScore || maxScore < v.MinScore)
+        return 0;
+    if (v.Children.empty())
+        return 1;
+    int sum = 0;
+    for (const auto& c : v.Children)
+        sum += CalcReEstimateLeafs(c, -maxScore, -minScore);
+    return sum;
+}
+
+int TEngine::TGameTreeNode::CalcNumberOfInteresting(int a, int b) const {
+    if (MaxScore < a || MinScore > b)
+        return 0;
+    if (Children.empty())
+        return 1;
+    int sum = 0;
+    for (int i = 0; i < (int) Children.size(); i++)
+        sum += Children[i].CalcNumberOfInteresting(-b, -a);
+    return sum;
+}
+
+bool TEngine::TGameTreeNode::IsTrivial(int a, int b) const {
+    int ioi = -1;
+    for (int i = 0; i < (int) Children.size(); i++) {
+        if (Children[i].MinScore > -b && Children[i].MaxScore < -a)
+            continue;
+        if (ioi != -1)
+            return false;
+        ioi = i;
+    }
+    return true;            
+}
+
+void TEngine::BuildLeafList(TGameTreeNode& v, vector<vector<TGameTreeNode*>>& result, vector<TGameTreeNode*>& leafStack) {
+    leafStack.push_back(&v);
+    if (v.Children.empty()) {
+        result.push_back(leafStack);
+    } else {
+        for (int i = 0; i < (int) v.Children.size(); i++)
+            BuildLeafList(v.Children[i], result, leafStack);
+    }
+    leafStack.pop_back();
+}
+
 /*
 void TEngine::MakeComputerMove(int posCntLim, vector<int> useFactors) {
 	for (auto& h : Heuristics)
