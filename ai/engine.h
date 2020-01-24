@@ -5,20 +5,7 @@
 #include <util.h>
 
 class TEngine {
-public:
-	struct TDfsLimits {
-		int Depth;
-		int Capture;
-		int Force;
-	};
-
-    struct TDfsResult {
-        int Score;
-        int StumbleScore;
-
-        TDfsResult GetNormalized() const;
-    };
-	
+public:	
 	struct TGameTreeNode {
         NBoard::TMove Move;
         string MoveName;
@@ -33,9 +20,7 @@ public:
 	
 	TEngine(NBoard::TBoardBatch& boards);
 
-	TDfsResult Dfs(int depth, int& cnt, int a = -INF, int b = INF);
-	TDfsResult Dfs(int ti, NBoard::TMove* moves, TDfsLimits lim, int a, int b, int& cnt, bool opTurn);
-    int DfsFixed(int ti, NBoard::TMove* moves, int depth, long long& cnt, int a);
+	int DfsFixed(int ti, NBoard::TMove* moves, int depth, long long& cnt, int a);
     int DfsIterable(int ti, NBoard::TMove* moves, int depth, long long& cnt, int a);
 	void MakeUserMove();
 	void MakeComputerMove(int posCntLim, vector<int> useFactors = THeuristics::DefaultUseFactors);
@@ -67,5 +52,3 @@ private:
 
     TMonteCarlo MonteCarlo;
 };
-
-TEngine::TDfsResult operator -(const TEngine::TDfsResult& score);
