@@ -14,11 +14,17 @@
 using namespace NBoard;
 
 TBoard::TBoard() {
-	InitStandart();
+	StaticInit();
+    InitStandart();
 }
 
 TBoard::TBoard(const string& fen) {
+    StaticInit();
 	InitFromFEN(fen);
+}
+
+int TBoard::GetTurn() const {
+    return Turn;
 }
 
 void TBoard::MakeMove(const TMove& m, const string& name) {

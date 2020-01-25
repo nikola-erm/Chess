@@ -6,7 +6,8 @@
 
 using namespace NBoard;
 
-TMove* TBoard::GenerateMoves(TMove* mr) {
+int TBoard::GenerateMoves(TMove* mr) {
+    auto mBegin = mr;
     auto mEnd = GenerateMovesUnchecked(mr);
     auto mw = mr;
     for (; mr != mEnd; mr++) {
@@ -17,7 +18,7 @@ TMove* TBoard::GenerateMoves(TMove* mr) {
         }
         UndoMove(*mr);
     }
-    return mw;    
+    return mw - mBegin;    
 }
 
 TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
@@ -302,7 +303,6 @@ TMove* TBoard::GenerateMovesUnchecked(TMove* moves) {
 				if (maskTo & opColor) {
 					moves->Reset();
 					moves->Add(mtMyPawn, posFrom, *m);
-					auto cap = opColor & maskTo;
 					moves->Add(OpMt[*m], *m);
 					if (maskTo & PawnTransformLines) {
 						auto mt2 = moves->MaskTypes[1];	

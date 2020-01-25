@@ -13,11 +13,8 @@ using namespace std;
 using TMask = unsigned long long;
 
 class THeuristics;
-class TEngine;
 
 namespace NBoard {
-
-class TBoardMovesIterable;
 
 enum EGameStatus {
 	GS_PLAY,
@@ -45,11 +42,8 @@ public:
 	friend class TMoveSerializer;
     friend class TMove;
     friend class TBoardMovesIterator;
-    friend class ::TEngine;
 
 public:
-	static void StaticInit();
-
 	TBoard();
 	TBoard(const string& fen);
 
@@ -59,8 +53,7 @@ public:
 	void Undo();
 
 	TMove* GenerateMovesUnchecked(TMove* moves);
-    TMove* GenerateMoves(TMove* moves);
-    TBoardMovesIterable IterableMovesUnchecked(TMove* moves);
+    int GenerateMoves(TMove* moves);
 	
 	bool IsOpKingUnderAttack() const;
 	bool IsMyKingUnderAttack() const;
@@ -73,6 +66,7 @@ public:
     //Slow!
     EGameStatus UpdateStatus();
 	EGameStatus Status;
+    int GetTurn() const;
 
 private:
 	int Turn;
@@ -95,7 +89,9 @@ private:
 	bool IsBlackUnderAttack(int pos) const;
 	void InitStandart();
 	void InitFromFEN(const string& fen);
+    static void StaticInit();
 
+    static bool StaticInitDone;
 	static int Bits[256][9];
 	static int KingStep[64][9];
 	static TMask KingStepAll[64];

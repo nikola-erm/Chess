@@ -1,6 +1,5 @@
 #include "genetic.h"
 
-#include <ai/engine.h>
 #include <board/board.h>
 #include <board/move_serializer.h>
 #include <genetic/genetic.h>
@@ -13,7 +12,8 @@ using namespace std;
 using namespace NBoard;
 
 vector<vector<int>> PlayTournament(const vector<vector<int>>& members) {
-	vector<double> scores(members.size(), 0.0);
+    return {};
+/*	vector<double> scores(members.size(), 0.0);
 	cerr << "Members:\n";
 	for (int i = 0; i < members.size(); i++) {
 		cerr << i << ":";
@@ -81,11 +81,12 @@ vector<vector<int>> PlayTournament(const vector<vector<int>>& members) {
 		cerr << "=> " << scores[i] << endl;
 	}
 	return { members[iob], members[iosb] };
+    */
 }
 
 vector<int> CreateGibrid(const vector<int>& p1, const vector<int>& p2) {
     vector<int> res;
-	for (int i = 0; i < p1.size(); i++) {
+	for (int i = 0; i < (int)p1.size(); i++) {
 		int l = min(p1[i], p2[i]);
         int r = max(p1[i], p2[i]);
         if (l == r) {

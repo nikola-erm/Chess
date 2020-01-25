@@ -58,7 +58,9 @@ static void AddTransformFigure(vector<string>& res, EMaskType maskType) {
 	case MT_WKNIGHT:
 	case MT_BKNIGHT:
 		fig = 'N';
-		break;					
+		break;
+    default:
+        assert(false);        					
 	}
 	for (auto& s : res) {
 		s += fig;

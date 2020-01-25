@@ -8,7 +8,12 @@
 
 using namespace NBoard;
 
+bool TBoard::StaticInitDone = false;
+
 void TBoard::StaticInit() {
+    if (StaticInitDone)
+        return;
+    StaticInitDone = true;
 	for (int m = 0; m < 256; m++) {
 		int wi = 0;
 		for (int j = 0; j < 8; j++)

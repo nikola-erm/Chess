@@ -37,7 +37,7 @@ vector<double> EstimateTreeSize(NBoard::TBoard& board, int depth, int itrCnt) {
             board.UndoMove(story[maxd]);
     }
     //cerr << endl;
-    for (int i = 0; i < ans.size(); i++) {
+    for (int i = 0; i < (int)ans.size(); i++) {
         ans[i] /= itrCnt;
         if (ans[i] < 1.0)
             ans[i] = 1.0;

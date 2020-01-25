@@ -5,15 +5,6 @@
 
 using namespace NBoard;
 
-static int Log2(int x) {
-    int res = 1;
-    while (x) {
-        res++;
-        x >>= 1;
-    }
-    return res;
-}
-
 int TMonteCarlo::ChooseMove(int v, int n) {
     vector<int> ioz;
     for (int i = 0; i < n; i++) {
@@ -49,7 +40,7 @@ int TMonteCarlo::Dfs(int v, TBoard& board, THeuristics& heuristics, int depth) {
     Data[v]++;
     
     auto& moves = Moves[depth];
-    int n = board.GenerateMoves(moves) - moves;
+    int n = board.GenerateMoves(moves);
     if (newV) {
         DataCount += n;
         for (int i = 0; i < n; i++)
@@ -75,7 +66,7 @@ int TMonteCarlo::Dfs(int v, TBoard& board, THeuristics& heuristics, int depth) {
 
 bool TMonteCarlo::MakeMove(TBoard& board, THeuristics& heuristics, TMove& bestMove, string& moveName) {
     DataCount = 0;
-    int n = board.GenerateMoves(Moves[0]) - Moves[0];
+    int n = board.GenerateMoves(Moves[0]);
     if (n == 0)
         return false;
     for (int itr = 0; itr < ItrCount; itr++) {

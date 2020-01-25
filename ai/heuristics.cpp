@@ -43,14 +43,12 @@ int THeuristics::GetScore() {
 		score += BishopActivityFactor(wk, bk) * UseFactors[BISHOP_ACTIVITY_FACTOR];
 	if (UseFactors[KING_CENTRALITY_FACTOR])
 		score += KingCentralityFactor(wk, bk) * UseFactors[KING_CENTRALITY_FACTOR];
-    if (UseFactors[PAWN_RAW_FACTOR])
-        score += PawnRawFactor() * UseFactors[PAWN_RAW_FACTOR];
-    if (UseFactors[PAWN_STRIKE_FACTOR])
-        score += PawnStrikeFactor() * UseFactors[PAWN_STRIKE_FACTOR];
-    if (UseFactors[KING_BETWEEN_ROOKS_FACTOR])
-        score += KingBetweenRooksFactor(wk, bk) * UseFactors[KING_BETWEEN_ROOKS_FACTOR];
-	//if (UseFactors[DOUBLE_ROOK_FACTOR])
-	//	score += DoubleRookFactor() * UseFactors[DOUBLE_ROOK_FACTOR];
+	if (UseFactors[PAWN_RAW_FACTOR])
+		score += PawnRawFactor() * UseFactors[PAWN_RAW_FACTOR];
+	if (UseFactors[PAWN_STRIKE_FACTOR])
+		score += PawnStrikeFactor() * UseFactors[PAWN_STRIKE_FACTOR];
+	if (UseFactors[KING_BETWEEN_ROOKS_FACTOR])
+		score += KingBetweenRooksFactor(wk, bk) * UseFactors[KING_BETWEEN_ROOKS_FACTOR];
 	return score;
 }
 
@@ -202,9 +200,6 @@ int THeuristics::KingBetweenRooksFactor(int wk, int bk) {
               - (int)((Board.Masks[NBoard::MT_WROOK] & NBoard::TBoard::RookStepAll[wk][0]) && (Board.Masks[NBoard::MT_WROOK] & NBoard::TBoard::RookStepAll[wk][2]))
               - (int)((Board.Masks[NBoard::MT_WROOK] & NBoard::TBoard::RookStepAll[wk][1]) && (Board.Masks[NBoard::MT_WROOK] & NBoard::TBoard::RookStepAll[wk][3]));
     return (Board.Turn & 1) ? -score : score;
-}
-
-int THeuristics::DoubleRookFactor() {
 }
 
 //const vector<int> THeuristics::DefaultUseFactors = { 9, 1, 1, 2, 2, 1, 1, 1, 1, 0 };

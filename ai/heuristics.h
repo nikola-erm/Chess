@@ -4,6 +4,8 @@
 
 #include <util.h>
 
+const int INF = 1023;
+
 class THeuristics {
 public:
 	enum EGameStage {
@@ -30,9 +32,8 @@ public:
 		KING_CENTRALITY_FACTOR,
         PAWN_RAW_FACTOR,
         PAWN_STRIKE_FACTOR,
-        KING_BETWEEN_ROOKS_FACTOR,
-		DOUBLE_ROOK_FACTOR
-	};
+        KING_BETWEEN_ROOKS_FACTOR
+    };
 
 	static const vector<int> DefaultUseFactors;
 
@@ -53,5 +54,4 @@ private:
     int PawnRawFactor();
     int PawnStrikeFactor();
     int KingBetweenRooksFactor(int wk, int bk);
-	int DoubleRookFactor();
 };
